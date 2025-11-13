@@ -14,7 +14,7 @@ Php
 
 
 Csapattagok neve:
-Dalémady Máté
+Dalmady Máté
 Tabi Kevin
 Németh Barna Kristóf
 
