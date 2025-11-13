@@ -1,5 +1,5 @@
 # GameCube-projekt
-Ide írjátok bele:
+Ide lesz:
 
 Rövid projektleírás
 
