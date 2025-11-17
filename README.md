@@ -1,5 +1,5 @@
 # GameCube-projekt
-Ide lesz:!!!!!!!!!
+
 
 Rövid projektleírás
 
