@@ -270,7 +270,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["checkout"])) {
             )
         ");
         $stmt->bind_param(
-            "iisssssss",
+            "iissssssss",
             $user_id,
             $total,
             $billing_name,
