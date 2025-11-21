@@ -367,9 +367,9 @@ function gc_image_file(string $name): string
             © <span id="yearSpan"></span> GameCube – Digitális játék kulcsok
         </span>
         <div class="gc-footer-links small">
-            <a href="#" class="me-3">ÁSZF</a>
-            <a href="#" class="me-3">Adatkezelés</a>
-            <a href="#">Kapcsolat</a>
+            <a href="aszf.php" class="me-3">ÁSZF</a>
+            <a href="adatkezeles.php" class="me-3">Adatkezelés</a>
+            <a href="kapcsolat.php">Kapcsolat</a>
         </div>
     </div>
 </footer>
