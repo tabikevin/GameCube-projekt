@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once "../config/db.php";
 require_once "../config/jwt_helper.php";
+require_once "../config/smtp_mailer.php";
+require_once "../config/email_templates.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -32,9 +34,13 @@ if (!$user_id && !empty($input['_token'])) {
 }
 
 if (!$user_id) {
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['HTTP_X_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = '';
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    elseif (!empty($_SERVER['HTTP_X_AUTHORIZATION'])) $authHeader = $_SERVER['HTTP_X_AUTHORIZATION'];
+    elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    
     if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
-        $payload = verifyJWT($matches[1]);
+        $payload = verifyJWT(trim($matches[1]));
         if ($payload && isset($payload['user_id'])) {
             $user_id = (int)$payload['user_id'];
         }
@@ -82,7 +88,7 @@ $billing_tax_number = trim($input['billing_tax_number'] ?? '');
 $payment_method = $input['payment_method'] ?? 'online_card';
 
 $errors = [];
-$allowed_methods = ['online_card', 'bank_transfer', 'paypal'];
+$allowed_methods = ['online_card', 'bank_transfer', 'paypal', 'cash'];
 if (!in_array($payment_method, $allowed_methods)) {
     $errors[] = 'Érvénytelen fizetési mód';
 }
@@ -97,7 +103,17 @@ if (!empty($errors)) {
     exit;
 }
 
-$cart = $_SESSION['cart'] ?? [];
+// Load cart from DB (user-based)
+$cartStmt = $conn->prepare("SELECT c.product_id, c.quantity FROM cart c WHERE c.user_id = ?");
+$cartStmt->bind_param("i", $user_id);
+$cartStmt->execute();
+$cartResult = $cartStmt->get_result();
+$cart = [];
+while ($cr = $cartResult->fetch_assoc()) {
+    $cart[(int)$cr['product_id']] = (int)$cr['quantity'];
+}
+$cartStmt->close();
+
 if (empty($cart)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'A kosár üres']);
@@ -141,7 +157,7 @@ try {
         exit;
     }
 
-    $status = ($payment_method === 'bank_transfer') ? 'pending' : 'paid';
+    $status = ($payment_method === 'bank_transfer' || $payment_method === 'cash') ? 'pending' : 'paid';
 
     $stmt = $conn->prepare("
         INSERT INTO orders (
@@ -177,14 +193,56 @@ try {
     }
 
     $conn->commit();
-    $_SESSION['cart'] = [];
+    // Clear DB cart
+    $delCart = $conn->prepare("DELETE FROM cart WHERE user_id = ?");
+    $delCart->bind_param("i", $user_id);
+    $delCart->execute();
+    $delCart->close();
+
+    
+    try {
+        $stmtUser = $conn->prepare("SELECT username, email FROM users WHERE id = ?");
+        $stmtUser->bind_param("i", $user_id);
+        $stmtUser->execute();
+        $userRow = $stmtUser->get_result()->fetch_assoc();
+        $stmtUser->close();
+
+        if ($userRow && !empty($userRow['email'])) {
+            $paymentLabels = [
+                'online_card'   => 'Bankkártyás fizetés',
+                'bank_transfer' => 'Banki átutalás',
+                'paypal'        => 'PayPal',
+                'cash'          => 'Készpénz'
+            ];
+
+            $emailHtml = buildOrderReceivedEmail([
+                'order_id'             => $order_id,
+                'user_name'            => $userRow['username'],
+                'items'                => $items,
+                'total_price'          => $total_price,
+                'payment_method_label' => $paymentLabels[$payment_method] ?? $payment_method
+            ]);
+
+            $mailer = new SmtpMailer('smtp.gmail.com', 465, 'Gamecube172604@gmail.com', 'acyw cyeg zpnf inmc');
+            $mailer->setHtml(true);
+            $mailer->send(
+                'Gamecube172604@gmail.com',
+                'GameCube',
+                $userRow['email'],
+                "[GameCube] Rendelés fogadva - #{$order_id}",
+                $emailHtml
+            );
+        }
+    } catch (Exception $mailErr) {
+        
+    }
 
     echo json_encode([
         'success' => true,
         'order_id' => $order_id,
         'message' => $status === 'paid' 
             ? 'Rendelés sikeresen leadva! A kulcsokat megtalálod a profilodban.' 
-            : 'Rendelés sikeresen leadva! Banki átutalás után aktiváljuk.',
+            : 'Rendelés sikeresen leadva! Az admin jóváhagyása után aktiváljuk.',
         'status' => $status
     ]);
 

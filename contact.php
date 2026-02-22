@@ -18,13 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once "../config/db.php";
 require_once "../config/smtp_mailer.php";
 
-// =============================================
-// BEÁLLÍTÁSOK
-// =============================================
 $gmailAddress  = "Gamecube172604@gmail.com";
 $gmailAppPass  = "acyw cyeg zpnf inmc";
 $receiverEmail = "Gamecube172604@gmail.com";
-// =============================================
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -60,7 +56,6 @@ $subjectLabels = [
 ];
 $subjectLabel = $subjectLabels[$subject] ?? $subject;
 
-// Mentés adatbázisba
 try {
     $stmt = $conn->prepare("INSERT INTO contact_messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, NOW())");
     $stmt->bind_param("ssss", $name, $email, $subjectLabel, $message);
@@ -83,7 +78,6 @@ try {
     $stmt->close();
 }
 
-// HTML email összeállítása
 $safeMessage = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
 $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
 $safeEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
@@ -102,7 +96,6 @@ $emailBody = <<<HTML
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
                     
-                    <!-- HEADER -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #1e1040, #2d1560); border-radius: 16px 16px 0 0; padding: 30px 40px; border-bottom: 2px solid #a855f7; text-align: center;">
                             <table width="100%" cellpadding="0" cellspacing="0">

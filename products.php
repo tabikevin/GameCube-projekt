@@ -13,7 +13,7 @@ require_once "../config/db.php";
 
 try {
     $result = $conn->query("
-        SELECT id, name, platform, short_description, price, tag, image_url
+        SELECT id, name, platform, category, short_description, price, tag, image_url
         FROM products
         WHERE is_active = 1
         ORDER BY id ASC
@@ -26,6 +26,7 @@ try {
                 'id' => (int)$row['id'],
                 'name' => $row['name'],
                 'platform' => $row['platform'],
+                'category' => $row['category'] ?? 'action',
                 'short_description' => $row['short_description'],
                 'price' => (int)$row['price'],
                 'tag' => $row['tag'],
