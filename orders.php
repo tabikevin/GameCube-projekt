@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once "../../config/db.php";
 require_once "../../config/jwt_helper.php";
+require_once "../../config/smtp_mailer.php";
+require_once "../../config/email_templates.php";
 
 $is_admin = false;
 
@@ -166,6 +168,60 @@ if ($method === 'GET') {
         }
 
         $conn->commit();
+
+        
+        try {
+            $stmtInfo = $conn->prepare("
+                SELECT o.user_id, o.total_price, u.username, u.email,
+                       oi.product_id, oi.quantity, p.name as product_name
+                FROM orders o
+                JOIN users u ON u.id = o.user_id
+                JOIN order_items oi ON oi.order_id = o.id
+                JOIN products p ON p.id = oi.product_id
+                WHERE o.id = ?
+            ");
+            $stmtInfo->bind_param("i", $order_id);
+            $stmtInfo->execute();
+            $resInfo = $stmtInfo->get_result();
+
+            $emailItems = [];
+            $emailUser = null;
+            $emailEmail = null;
+            $emailTotal = 0;
+
+            while ($row = $resInfo->fetch_assoc()) {
+                $emailUser  = $row['username'];
+                $emailEmail = $row['email'];
+                $emailTotal = (int)$row['total_price'];
+                $emailItems[] = [
+                    'name'     => $row['product_name'],
+                    'quantity' => (int)$row['quantity'],
+                    'price'    => 0
+                ];
+            }
+            $stmtInfo->close();
+
+            if ($emailEmail) {
+                $emailHtml = buildOrderApprovedEmail([
+                    'order_id'    => $order_id,
+                    'user_name'   => $emailUser,
+                    'items'       => $emailItems,
+                    'total_price' => $emailTotal
+                ]);
+
+                $mailer = new SmtpMailer('smtp.gmail.com', 465, 'Gamecube172604@gmail.com', 'acyw cyeg zpnf inmc');
+                $mailer->setHtml(true);
+                $mailer->send(
+                    'Gamecube172604@gmail.com',
+                    'GameCube',
+                    $emailEmail,
+                    "[GameCube] Rendelés jóváhagyva - #{$order_id}",
+                    $emailHtml
+                );
+            }
+        } catch (Exception $mailErr) {
+            
+        }
 
         echo json_encode([
             'success' => true,
