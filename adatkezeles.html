@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adatkezelési Tájékoztató - GameCube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .doc-container {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .doc-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #a855f7;
+            font-size: 1.05rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .doc-container h2:first-child { margin-top: 0; }
+        .doc-container p, .doc-container li { color: #cbd5e1; line-height: 1.8; font-size: 0.95rem; }
+        .doc-container ul { padding-left: 1.5rem; }
+        .doc-container li { margin-bottom: 0.4rem; }
+        .doc-title { font-family: 'Orbitron', sans-serif; font-weight: 900; text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+        .doc-badge { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #a855f7; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-bottom: 1.5rem; }
+        a.highlight { color: #a855f7; }
+        .rights-card {
+            background: rgba(6,182,212,0.05);
+            border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 12px;
+            padding: 1.2rem 1.4rem;
+            margin-bottom: 0.75rem;
+        }
+        .rights-card .bi { color: #06b6d4; margin-right: 0.6rem; }
+        .rights-card strong { color: #e2e8f0; }
+        .rights-card p { color: #94a3b8; font-size: 0.88rem; margin: 0.2rem 0 0; }
+    </style>
+</head>
+<body>
+    <header class="gc-header py-3 sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="index.html" class="text-decoration-none text-light d-flex align-items-center">
+                        <span class="gc-logo-square me-2"></span>
+                        <h1 class="h4 mb-0">GameCube</h1>
+                    </a>
+                </div>
+                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <span id="userGreeting" class="text-light d-none"></span>
+                    <div id="profileNavItem" class="d-none">
+                        <a href="profile.html" class="btn btn-outline-light btn-sm"><i class="bi bi-person"></i> Profil</a>
+                    </div>
+                    <a href="cart.html" class="btn btn-outline-light btn-sm position-relative">
+                        <i class="bi bi-cart3"></i> Kosár
+                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+                    </a>
+                    <div id="authButtons">
+                        <a href="login.html" class="btn btn-outline-light btn-sm">Bejelentkezés</a>
+                        <a href="register.html" class="btn gc-btn-main btn-sm">Regisztráció</a>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none;">Kilépés</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container" style="max-width: 860px;">
+            <div class="mb-4">
+                <a href="index.html" class="text-decoration-none" style="color: #a855f7;"><i class="bi bi-arrow-left me-2"></i>Vissza a főoldalra</a>
+            </div>
+            <h1 class="doc-title display-5 text-white mb-2">Adatkezelési Tájékoztató</h1>
+            <div class="doc-badge"><i class="bi bi-clock me-1"></i>Utolsó frissítés: 2025. január 1.</div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-person-badge me-2"></i>1. Az adatkezelő adatai</h2>
+                <p>
+                    <strong class="text-white">Cégnév:</strong> GameCube<br>
+                    <strong class="text-white">Székhely:</strong> 7622 Pécs, Bőrgyár utca<br>
+                    <strong class="text-white">E-mail:</strong> <a class="highlight" href="mailto:gamecube172604@gmail.com">gamecube172604@gmail.com</a><br>
+                    <strong class="text-white">Telefon:</strong> <a class="highlight" href="tel:+36304327936">06 30 432 7936</a> (0–24 h)<br>
+                    <strong class="text-white">Adatkezelési nyilvántartási szám:</strong> NAIH-nyilvántartásba vétel folyamatban
+                </p>
+
+                <h2><i class="bi bi-database me-2"></i>2. Kezelt személyes adatok</h2>
+                <p>A GameCube az alábbi személyes adatokat kezeli a weboldalon történő regisztráció és vásárlás során:</p>
+                <ul>
+                    <li><strong class="text-white">Regisztráció esetén:</strong> felhasználónév, e-mail cím, jelszó (titkosított formában)</li>
+                    <li><strong class="text-white">Vásárlás esetén:</strong> rendelés azonosítója, megvásárolt termékek, vásárlás időpontja, fizetési összeg</li>
+                    <li><strong class="text-white">Kapcsolatfelvétel esetén:</strong> név, e-mail cím, üzenet tartalma</li>
+                    <li><strong class="text-white">Automatikusan gyűjtött adatok:</strong> IP-cím, böngésző típusa, látogatás időpontja (munkamenet sütik)</li>
+                </ul>
+
+                <h2><i class="bi bi-bullseye me-2"></i>3. Az adatkezelés célja és jogalapja</h2>
+                <p>Az adatokat az alábbi célokból és jogalapokon kezeljük:</p>
+                <ul>
+                    <li><strong class="text-white">Szerződés teljesítése (GDPR 6. cikk (1) b):</strong> regisztrációhoz és a megrendelt termékek kézbesítéséhez</li>
+                    <li><strong class="text-white">Jogos érdek (GDPR 6. cikk (1) f):</strong> visszaélések megelőzése, rendszerbiztonság</li>
+                    <li><strong class="text-white">Hozzájárulás (GDPR 6. cikk (1) a):</strong> hírlevél küldése (opcionális, bármikor visszavonható)</li>
+                    <li><strong class="text-white">Jogi kötelezettség (GDPR 6. cikk (1) c):</strong> számviteli és adójogi előírások teljesítése</li>
+                </ul>
+
+                <h2><i class="bi bi-clock-history me-2"></i>4. Adatmegőrzési idő</h2>
+                <ul>
+                    <li>Felhasználói fiók adatai: a fiók törléséig, de legfeljebb 5 évig</li>
+                    <li>Vásárlási adatok: 8 év (számviteli törvény előírása alapján)</li>
+                    <li>Kapcsolatfelvételi üzenetek: az ügy lezárását követő 1 évig</li>
+                    <li>Munkamenet sütik: a böngésző bezárásakor törlődnek</li>
+                </ul>
+
+                <h2><i class="bi bi-share me-2"></i>5. Adatátadás, harmadik felek</h2>
+                <p>A GameCube személyes adatokat kizárólag az alábbi esetekben adhat át harmadik félnek:</p>
+                <ul>
+                    <li>Fizetési szolgáltatók (pl. banki feldolgozó) – kizárólag a tranzakció lebonyolításához szükséges mértékben</li>
+                    <li>Hatóságok – jogszabályi kötelezettség esetén</li>
+                    <li>Adatfeldolgozók (pl. tárhelyszolgáltató) – megfelelő adatfeldolgozói szerződés alapján</li>
+                </ul>
+                <p>A GameCube adatait harmadik országba nem továbbítja, és azokat marketingcélból harmadik félnek nem adja el.</p>
+
+                <h2><i class="bi bi-shield-fill-check me-2"></i>6. Adatbiztonság</h2>
+                <p>A GameCube megfelelő technikai és szervezési intézkedésekkel védi az általa kezelt személyes adatokat az illetéktelen hozzáférés, megváltoztatás, nyilvánosságra hozatal, törlés vagy megsemmisítés ellen. A jelszavakat kriptográfiai hash-eléssel tároljuk, az átvitel HTTPS protokollon keresztül zajlik.</p>
+
+                <h2><i class="bi bi-hand-index me-2"></i>7. Az érintett jogai</h2>
+                <p>A GDPR alapján az alábbi jogokkal rendelkezel:</p>
+            </div>
+
+            <div class="mb-4">
+                <div class="rights-card"><i class="bi bi-eye-fill"></i><strong>Hozzáférés joga</strong><p>Kérheted, hogy tájékoztassunk az általunk kezelt adataidról.</p></div>
+                <div class="rights-card"><i class="bi bi-pencil-fill"></i><strong>Helyesbítés joga</strong><p>Kérheted pontatlan vagy hiányos adataid javítását.</p></div>
+                <div class="rights-card"><i class="bi bi-trash-fill"></i><strong>Törlés joga (elfeledtetés)</strong><p>Bizonyos feltételek mellett kérheted adataid törlését.</p></div>
+                <div class="rights-card"><i class="bi bi-pause-circle-fill"></i><strong>Korlátozás joga</strong><p>Kérheted az adatkezelés korlátozását vitatott esetekben.</p></div>
+                <div class="rights-card"><i class="bi bi-box-arrow-right"></i><strong>Adathordozhatóság joga</strong><p>Kérheted adataid géppel olvasható formátumban való kiadását.</p></div>
+                <div class="rights-card"><i class="bi bi-x-circle-fill"></i><strong>Tiltakozás joga</strong><p>Tiltakozhatsz jogos érdeken vagy közvetlen megkeresési célon alapuló adatkezelés ellen.</p></div>
+            </div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-envelope me-2"></i>8. Jogérvényesítés, panasz</h2>
+                <p>Jogaid érvényesítése érdekében fordulj hozzánk: <a class="highlight" href="mailto:gamecube172604@gmail.com">gamecube172604@gmail.com</a> | <a class="highlight" href="tel:+36304327936">06 30 432 7936</a></p>
+                <p>Ha úgy véled, hogy adatkezelésünk megsérti a GDPR-t, panasszal élhetsz a Nemzeti Adatvédelmi és Információszabadság Hatóságnál (NAIH):</p>
+                <ul>
+                    <li>Cím: 1055 Budapest, Falk Miksa utca 9–11.</li>
+                    <li>E-mail: <a class="highlight" href="mailto:ugyfelszolgalat@naih.hu">ugyfelszolgalat@naih.hu</a></li>
+                    <li>Weboldal: <a class="highlight" href="https://www.naih.hu" target="_blank">www.naih.hu</a></li>
+                </ul>
+
+                <h2><i class="bi bi-cookie me-2"></i>9. Sütik (cookie-k)</h2>
+                <p>Oldalunk munkamenet-sütiket használ, amelyek a bejelentkezési állapot megőrzéséhez szükségesek, és a böngésző bezárásakor automatikusan törlődnek. Harmadik féltől származó nyomkövető sütiket nem alkalmazunk.</p>
+
+                <h2><i class="bi bi-pencil me-2"></i>10. Tájékoztató módosítása</h2>
+                <p>Fenntartjuk a jogot a jelen tájékoztató módosítására. Lényeges változás esetén a bejelentkezett felhasználókat e-mailben értesítjük. A módosítás időpontját mindig feltüntetjük a dokumentum tetején.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="gc-footer py-5 mt-3">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="gc-logo-square me-2"></span>
+                        <h5 class="mb-0 text-white">GameCube</h5>
+                    </div>
+                    <p class="text-light-50 mb-0"><i class="bi bi-c-circle me-1"></i>2026 GameCube<br>Digitális játék kulcsok azonnali kézbesítéssel</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-white mb-3">Hasznos linkek</h6>
+                    <div class="gc-footer-links-grid">
+                        <a href="aszf.html" class="gc-footer-link-card"><i class="bi bi-file-earmark-text"></i><span>ÁSZF</span></a>
+                        <a href="adatkezeles.html" class="gc-footer-link-card"><i class="bi bi-shield-check"></i><span>Adatkezelés</span></a>
+                        <a href="kapcsolat.html" class="gc-footer-link-card"><i class="bi bi-envelope"></i><span>Kapcsolat</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth.js"></script>
+</body>
+</html>

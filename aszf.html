@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÁSZF - GameCube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .doc-container {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .doc-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #a855f7;
+            font-size: 1.05rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .doc-container h2:first-child { margin-top: 0; }
+        .doc-container p, .doc-container li { color: #cbd5e1; line-height: 1.8; font-size: 0.95rem; }
+        .doc-container ul { padding-left: 1.5rem; }
+        .doc-container li { margin-bottom: 0.4rem; }
+        .doc-title { font-family: 'Orbitron', sans-serif; font-weight: 900; text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+        .doc-badge { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #a855f7; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-bottom: 1.5rem; }
+        a.highlight { color: #a855f7; }
+    </style>
+</head>
+<body>
+    <header class="gc-header py-3 sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="index.html" class="text-decoration-none text-light d-flex align-items-center">
+                        <span class="gc-logo-square me-2"></span>
+                        <h1 class="h4 mb-0">GameCube</h1>
+                    </a>
+                </div>
+                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <span id="userGreeting" class="text-light d-none"></span>
+                    <div id="profileNavItem" class="d-none">
+                        <a href="profile.html" class="btn btn-outline-light btn-sm"><i class="bi bi-person"></i> Profil</a>
+                    </div>
+                    <a href="cart.html" class="btn btn-outline-light btn-sm position-relative">
+                        <i class="bi bi-cart3"></i> Kosár
+                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+                    </a>
+                    <div id="authButtons">
+                        <a href="login.html" class="btn btn-outline-light btn-sm">Bejelentkezés</a>
+                        <a href="register.html" class="btn gc-btn-main btn-sm">Regisztráció</a>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none;">Kilépés</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container" style="max-width: 860px;">
+            <div class="mb-4">
+                <a href="index.html" class="text-decoration-none" style="color: #a855f7;"><i class="bi bi-arrow-left me-2"></i>Vissza a főoldalra</a>
+            </div>
+            <h1 class="doc-title display-5 text-white mb-2">Általános Szerződési Feltételek</h1>
+            <div class="doc-badge"><i class="bi bi-clock me-1"></i>Utolsó frissítés: 2025. január 1.</div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-info-circle me-2"></i>1. Általános tudnivalók</h2>
+                <p>Jelen Általános Szerződési Feltételek (a továbbiakban: ÁSZF) a GameCube digitális játékkulcs webáruház (üzemeltető: GameCube, székhely: Pécs, Bőrgyár utca; e-mail: gamecube172604@gmail.com) és a felhasználók közötti jogviszony szabályait tartalmazza. Az oldalon történő regisztrációval, böngészéssel és vásárlással a felhasználó elfogadja jelen ÁSZF rendelkezéseit.</p>
+
+                <h2><i class="bi bi-shop me-2"></i>2. A szolgáltatás tárgya</h2>
+                <p>A GameCube webáruház digitális játékkulcsok, előfizetések és egyéb digitális tartalmak értékesítésével foglalkozik PC (Steam, Epic Games stb.), PlayStation, Xbox és Nintendo Switch platformokra. A vásárlást követően a kulcsot elektronikus úton, e-mailben küldjük el, és a felhasználói profilban is elérhető lesz.</p>
+
+                <h2><i class="bi bi-person-check me-2"></i>3. Regisztráció és fiók</h2>
+                <p>A vásárláshoz regisztráció szükséges. A regisztráció során megadott adatoknak valósnak és pontosnak kell lenniük. Egy e-mail-cím csak egy fiókhoz használható. A felhasználó felelős a fiókjához tartozó jelszó biztonságos megőrzéséért. Amennyiben illetéktelen hozzáférést észlel, kérjük, haladéktalanul értesítse ügyfélszolgálatunkat.</p>
+
+                <h2><i class="bi bi-credit-card me-2"></i>4. Vásárlás és fizetés</h2>
+                <p>A feltüntetett árak forintban (HUF) értendők, és tartalmazzák az általános forgalmi adót (ÁFA). A vásárlás menete:</p>
+                <ul>
+                    <li>A kívánt termék(ek) kosárba helyezése</li>
+                    <li>A rendelés áttekintése és a fizetési mód kiválasztása</li>
+                    <li>A fizetés teljesítése</li>
+                    <li>A kulcs e-mailben és a profilban való megjelenése</li>
+                </ul>
+                <p>A GameCube fenntartja a jogot az árak módosítására, de a már visszaigazolt rendelésre ez nem vonatkozik.</p>
+
+                <h2><i class="bi bi-arrow-repeat me-2"></i>5. Elállás, visszatérítés</h2>
+                <p>Mivel a termékek digitális jellegűek, és a kulcs átadása a vásárlás pillanatában megtörténik, az elállási jog – a fogyasztói szerződésekről szóló EU-s irányelvnek megfelelően – a kulcs kiadását követően nem gyakorolható. Technikai hiba vagy hibás kulcs esetén kérjük, vegye fel a kapcsolatot ügyfélszolgálatunkkal: <a class="highlight" href="mailto:gamecube172604@gmail.com">gamecube172604@gmail.com</a>.</p>
+
+                <h2><i class="bi bi-shield-lock me-2"></i>6. Felelősség és garancia</h2>
+                <p>A GameCube szavatolja, hogy az értékesített kulcsok érvényesek és aktiválhatók. Nem vállal felelősséget olyan esetekben, amikor a kulcs aktiválása a felhasználó hibájából (pl. nem megfelelő régió, platform) vagy a gyártó/forgalmazó oldalán bekövetkező változás miatt nem lehetséges. Ilyen esetben egyedi elbírálás alapján csere vagy visszatérítés lehetséges.</p>
+
+                <h2><i class="bi bi-lock me-2"></i>7. Szellemi tulajdon</h2>
+                <p>A weboldalon megjelenő tartalmak (szöveg, kép, logó, design) a GameCube szellemi tulajdonát képezik, vagy az adott jogosulttól engedéllyel kerülnek felhasználásra. Ezek engedély nélküli másolása, terjesztése tilos.</p>
+
+                <h2><i class="bi bi-pencil me-2"></i>8. ÁSZF módosítása</h2>
+                <p>A GameCube fenntartja a jogot jelen ÁSZF egyoldalú módosítására. A módosításokat a weboldalon közzétesszük, és a bejelentkezett felhasználókat e-mailben is értesíthetjük. A módosítás hatályba lépése után az oldal használatának folytatása az új feltételek elfogadásának minősül.</p>
+
+                <h2><i class="bi bi-envelope me-2"></i>9. Kapcsolat</h2>
+                <p>Kérdés, reklamáció esetén kérjük, lépjen kapcsolatba ügyfélszolgálatunkkal: <a class="highlight" href="mailto:gamecube172604@gmail.com">gamecube172604@gmail.com</a> | <a class="highlight" href="tel:+36304327936">06 30 432 7936</a> (0–24 h)</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="gc-footer py-5 mt-3">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="gc-logo-square me-2"></span>
+                        <h5 class="mb-0 text-white">GameCube</h5>
+                    </div>
+                    <p class="text-light-50 mb-0"><i class="bi bi-c-circle me-1"></i>2026 GameCube<br>Digitális játék kulcsok azonnali kézbesítéssel</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-white mb-3">Hasznos linkek</h6>
+                    <div class="gc-footer-links-grid">
+                        <a href="aszf.html" class="gc-footer-link-card"><i class="bi bi-file-earmark-text"></i><span>ÁSZF</span></a>
+                        <a href="adatkezeles.html" class="gc-footer-link-card"><i class="bi bi-shield-check"></i><span>Adatkezelés</span></a>
+                        <a href="kapcsolat.html" class="gc-footer-link-card"><i class="bi bi-envelope"></i><span>Kapcsolat</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth.js"></script>
+</body>
+</html>

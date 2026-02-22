@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - GameCube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .doc-container {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .doc-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #a855f7;
+            font-size: 1.05rem;
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .doc-title { font-family: 'Orbitron', sans-serif; font-weight: 900; text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+        .info-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
+        .info-value { color: #f1f5f9; font-size: 1rem; font-weight: 500; }
+        .gc-table { --bs-table-bg: transparent; --bs-table-border-color: rgba(168,85,247,0.12); color: #f1f5f9; }
+        .gc-table thead th { color: #a855f7; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom-color: rgba(168,85,247,0.3) !important; font-weight: 600; }
+        .gc-table tbody td { vertical-align: middle; border-color: rgba(168,85,247,0.08); }
+        .key-box { background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1rem; }
+        .key-box h6 { color: #e2e8f0; font-weight: 600; margin-bottom: 0.5rem; }
+        .key-code { font-family: monospace; font-size: 1.05rem; color: #a855f7; background: rgba(168,85,247,0.08); padding: 0.5rem 1rem; border-radius: 8px; border: 1px dashed rgba(168,85,247,0.35); display: block; word-break: break-all; }
+        .admin-box { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <header class="gc-header py-3 sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="index.html" class="text-decoration-none text-light d-flex align-items-center">
+                        <span class="gc-logo-square me-2"></span>
+                        <h1 class="h4 mb-0">GameCube</h1>
+                    </a>
+                </div>
+                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <a href="index.html" class="btn btn-outline-light btn-sm"><i class="bi bi-house"></i> Főoldal</a>
+                    <a href="cart.html" class="btn btn-outline-light btn-sm position-relative">
+                        <i class="bi bi-cart3"></i> Kosár
+                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+                    </a>
+                    <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Kilépés</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container" style="max-width:900px;">
+            <div class="mb-4">
+                <a href="index.html" class="text-decoration-none" style="color:#a855f7;"><i class="bi bi-arrow-left me-2"></i>Vissza a főoldalra</a>
+            </div>
+            <h1 class="doc-title display-5 text-white mb-4">
+                <i class="bi bi-person-circle me-2" style="color:#a855f7; font-size:0.8em;"></i>Profil
+                <span id="adminBadge" class="badge bg-danger ms-2" style="display:none; font-size:0.4em; vertical-align:middle;">Admin</span>
+            </h1>
+
+            <div id="adminSection" class="admin-box" style="display:none;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-shield-fill-check text-danger" style="font-size:2rem; flex-shrink:0;"></i>
+                    <div>
+                        <p class="text-white fw-semibold mb-1">Admin jogosultsággal rendelkezel</p>
+                        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:0.75rem;">Hozzáférsz az adminisztrációs panelhez.</p>
+                        <a href="admin.html" class="btn btn-sm btn-outline-danger"><i class="bi bi-speedometer2 me-1"></i>Admin Panel</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-person me-2"></i>Felhasználói adatok</h2>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="info-label">Teljes név</div>
+                        <div class="info-value" id="userName">–</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Felhasználónév</div>
+                        <div class="info-value" id="userUsername">–</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Email cím</div>
+                        <div class="info-value" id="userEmail">–</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Telefonszám</div>
+                        <div class="info-value" id="userPhone">–</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Szerepkör</div>
+                        <div class="info-value" id="userRole">–</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-label">Regisztráció dátuma</div>
+                        <div class="info-value" id="userSince">–</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-key me-2"></i>Vásárolt játékkulcsok</h2>
+                <div id="keysContainer">
+                    <p style="color:#64748b;">Betöltés...</p>
+                </div>
+            </div>
+
+            <div class="doc-container">
+                <h2><i class="bi bi-receipt me-2"></i>Rendelések</h2>
+                <div class="table-responsive">
+                    <table class="table gc-table mb-0" style="color:#f1f5f9;">
+                        <thead>
+                            <tr>
+                                <th>Rendelés #</th>
+                                <th>Dátum</th>
+                                <th>Összeg</th>
+                                <th>Fizetési mód</th>
+                                <th>Státusz</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            <tr><td colspan="5" class="text-center py-4" style="color:#64748b;">Betöltés...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="gc-footer py-5 mt-3">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="gc-logo-square me-2"></span>
+                        <h5 class="mb-0 text-white">GameCube</h5>
+                    </div>
+                    <p class="text-light-50 mb-0"><i class="bi bi-c-circle me-1"></i>2026 GameCube<br>Digitális játék kulcsok azonnali kézbesítéssel</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-white mb-3">Hasznos linkek</h6>
+                    <div class="gc-footer-links-grid">
+                        <a href="aszf.html" class="gc-footer-link-card"><i class="bi bi-file-earmark-text"></i><span>ÁSZF</span></a>
+                        <a href="adatkezeles.html" class="gc-footer-link-card"><i class="bi bi-shield-check"></i><span>Adatkezelés</span></a>
+                        <a href="kapcsolat.html" class="gc-footer-link-card"><i class="bi bi-envelope"></i><span>Kapcsolat</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth.js?v=fix3"></script>
+    <script src="assets/js/profile.js?v=fix3"></script>
+</body>
+</html>

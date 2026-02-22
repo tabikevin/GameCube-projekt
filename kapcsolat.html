@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kapcsolat - GameCube</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        .doc-container {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .doc-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #a855f7;
+            font-size: 1.05rem;
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .doc-title { font-family: 'Orbitron', sans-serif; font-weight: 900; text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
+        .doc-badge { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #a855f7; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-bottom: 1.5rem; }
+        .gc-input { background: rgba(139,92,246,0.08) !important; border: 1px solid rgba(168,85,247,0.25) !important; color: #f1f5f9 !important; border-radius: 10px !important; }
+        .gc-input:focus { background: rgba(139,92,246,0.12) !important; border-color: rgba(168,85,247,0.6) !important; box-shadow: 0 0 0 3px rgba(168,85,247,0.15) !important; }
+        .gc-input::placeholder { color: #64748b !important; }
+        .form-label { color: #94a3b8; font-size: 0.9rem; }
+        .info-row { display: flex; align-items: flex-start; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(168,85,247,0.12); }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-icon { width: 38px; height: 38px; background: rgba(168,85,247,0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #a855f7; font-size: 1rem; flex-shrink: 0; }
+        .info-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .info-value { color: #e2e8f0; font-size: 0.95rem; }
+        .info-value a { color: #a855f7; text-decoration: none; }
+        .info-value a:hover { color: #c084fc; }
+        .faq-item { padding: 0.85rem 0; border-bottom: 1px solid rgba(168,85,247,0.12); }
+        .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .faq-item h3 { font-size: 0.92rem; color: #e2e8f0; margin-bottom: 0.3rem; }
+        .faq-item p { font-size: 0.85rem; color: #94a3b8; margin: 0; }
+        .gc-btn-send { background: linear-gradient(135deg, #a855f7, #7c3aed); border: none; color: white; border-radius: 10px; padding: 0.75rem 1.5rem; font-weight: 600; width: 100%; transition: opacity 0.2s; }
+        .gc-btn-send:hover { opacity: 0.9; color: white; }
+        .badge-live { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.7rem; margin-left: 0.4rem; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <header class="gc-header py-3 sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="index.html" class="text-decoration-none text-light d-flex align-items-center">
+                        <span class="gc-logo-square me-2"></span>
+                        <h1 class="h4 mb-0">GameCube</h1>
+                    </a>
+                </div>
+                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <span id="userGreeting" class="text-light d-none"></span>
+                    <div id="profileNavItem" class="d-none">
+                        <a href="profile.html" class="btn btn-outline-light btn-sm"><i class="bi bi-person"></i> Profil</a>
+                    </div>
+                    <a href="cart.html" class="btn btn-outline-light btn-sm position-relative">
+                        <i class="bi bi-cart3"></i> Kosár
+                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
+                    </a>
+                    <div id="authButtons">
+                        <a href="login.html" class="btn btn-outline-light btn-sm">Bejelentkezés</a>
+                        <a href="register.html" class="btn gc-btn-main btn-sm">Regisztráció</a>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none;">Kilépés</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-5">
+        <div class="container" style="max-width: 1000px;">
+
+            <!-- Ha nincs bejelentkezve -->
+            <div id="loginRequired" style="display:none; text-align:center; padding:5rem 2rem;">
+                <i class="bi bi-lock" style="font-size:4rem; color:rgba(168,85,247,0.3); display:block; margin-bottom:1.5rem;"></i>
+                <h2 style="font-family:'Orbitron',sans-serif; color:#a855f7; margin-bottom:0.75rem;">Bejelentkezés szükséges</h2>
+                <p style="color:#94a3b8; margin-bottom:2rem; max-width:400px; margin-left:auto; margin-right:auto;">A kapcsolatfelvételi űrlap eléréséhez be kell jelentkezned a fiókodba.</p>
+                <a href="login.html?redirect=kapcsolat.html" style="background:linear-gradient(135deg,#a855f7,#7c3aed); color:white; text-decoration:none; border-radius:10px; padding:0.75rem 2rem; font-weight:600; display:inline-block; margin-right:0.75rem;">Bejelentkezés</a>
+                <a href="register.html" style="border:1px solid rgba(168,85,247,0.4); color:#a855f7; text-decoration:none; border-radius:10px; padding:0.75rem 2rem; font-weight:600; display:inline-block;">Regisztráció</a>
+            </div>
+
+            <div id="mainContent">
+            <div class="mb-4">
+                <a href="index.html" class="text-decoration-none" style="color: #a855f7;"><i class="bi bi-arrow-left me-2"></i>Vissza a főoldalra</a>
+            </div>
+            <h1 class="doc-title display-5 text-white mb-2">Kapcsolat</h1>
+            <div class="doc-badge"><i class="bi bi-headset me-1"></i>Ügyfélszolgálat 0–24 órában elérhető</div>
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="doc-container">
+                        <h2><i class="bi bi-envelope me-2"></i>Írj nekünk</h2>
+                        <form id="contactForm" class="mt-3">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Teljes név</label>
+                                <input type="text" class="form-control gc-input" id="name" name="name" placeholder="Pl. Kovács Péter" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email cím</label>
+                                <input type="email" class="form-control gc-input" id="email" name="email" placeholder="pelda@email.hu" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Tárgy</label>
+                                <select class="form-select gc-input" id="subject" name="subject" required>
+                                    <option value="">Válassz témát...</option>
+                                    <option value="general">Általános kérdés</option>
+                                    <option value="order">Rendeléssel kapcsolatos</option>
+                                    <option value="technical">Technikai probléma</option>
+                                    <option value="complaint">Reklamáció</option>
+                                    <option value="other">Egyéb</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="message" class="form-label">Üzenet</label>
+                                <textarea class="form-control gc-input" id="message" name="message" rows="6" placeholder="Írd le kérdésedet részletesen..." required style="resize:vertical; min-height:140px;"></textarea>
+                            </div>
+                            <div class="alert alert-success" id="successMessage" style="display:none; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10b981; border-radius:10px;">
+                                <i class="bi bi-check-circle me-2"></i>Köszönjük az üzeneted! Hamarosan válaszolunk.
+                            </div>
+                            <button type="submit" class="gc-btn-send">
+                                <i class="bi bi-send me-2"></i>Üzenet küldése
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="doc-container mb-4">
+                        <h2><i class="bi bi-geo-alt me-2"></i>Elérhetőségeink</h2>
+                        <div class="mt-3">
+                            <div class="info-row">
+                                <div class="info-icon"><i class="bi bi-envelope-fill"></i></div>
+                                <div>
+                                    <div class="info-label">Email</div>
+                                    <div class="info-value"><a href="mailto:gamecube172604@gmail.com">gamecube172604@gmail.com</a></div>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-icon"><i class="bi bi-telephone-fill"></i></div>
+                                <div>
+                                    <div class="info-label">Telefon</div>
+                                    <div class="info-value">
+                                        <a href="tel:+36304327936">06 30 432 7936</a>
+                                        <span class="badge-live">&#x25cf; 0–24</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-icon"><i class="bi bi-building"></i></div>
+                                <div>
+                                    <div class="info-label">Székhely</div>
+                                    <div class="info-value">7622 Pécs, Bőrgyár utca</div>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-icon"><i class="bi bi-clock-fill"></i></div>
+                                <div>
+                                    <div class="info-label">Ügyfélszolgálat</div>
+                                    <div class="info-value">0–24 óra, minden nap</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="doc-container">
+                        <h2><i class="bi bi-question-circle me-2"></i>Gyakori kérdések</h2>
+                        <div class="mt-3">
+                            <div class="faq-item">
+                                <h3>Mennyi idő alatt kapom meg a kulcsot?</h3>
+                                <p>Fizetés után a kulcs azonnal megérkezik e-mailben és a profilodban is megjelenik.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h3>Mi van, ha nem működik a kulcs?</h3>
+                                <p>Írj nekünk 48 órán belül, és új kulcsot biztosítunk vagy visszatérítjük az összeget.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h3>Visszakérhetek pénzt?</h3>
+                                <p>Digitális termék esetén a kulcs átadása után elállási jog nem gyakorolható. Hibás kulcsnál egyedi elbírálás lehetséges.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h3>Milyen platformokra kaptok kulcsokat?</h3>
+                                <p>PC (Steam, Epic Games), PlayStation, Xbox és Nintendo Switch platformokra.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /mainContent -->
+        </div>
+    </section>
+
+    <footer class="gc-footer py-5 mt-3">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="gc-logo-square me-2"></span>
+                        <h5 class="mb-0 text-white">GameCube</h5>
+                    </div>
+                    <p class="text-light-50 mb-0"><i class="bi bi-c-circle me-1"></i><span id="yearSpan">2026</span> GameCube<br>Digitális játék kulcsok azonnali kézbesítéssel</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-white mb-3">Hasznos linkek</h6>
+                    <div class="gc-footer-links-grid">
+                        <a href="aszf.html" class="gc-footer-link-card"><i class="bi bi-file-earmark-text"></i><span>ÁSZF</span></a>
+                        <a href="adatkezeles.html" class="gc-footer-link-card"><i class="bi bi-shield-check"></i><span>Adatkezelés</span></a>
+                        <a href="kapcsolat.html" class="gc-footer-link-card"><i class="bi bi-envelope"></i><span>Kapcsolat</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth.js?v=fix3"></script>
+    <script>
+        document.getElementById('yearSpan').textContent = new Date().getFullYear();
+
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+
+            successMessage.style.display = 'none';
+            if (errorMessage) errorMessage.style.display = 'none';
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Küldés...';
+
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value.trim()
+            };
+
+            try {
+                const response = await fetch(API_BASE + '/contact.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successMessage.textContent = data.message || 'Köszönjük az üzeneted! Hamarosan válaszolunk.';
+                    successMessage.style.display = 'block';
+                    this.reset();
+                    setTimeout(() => { successMessage.style.display = 'none'; }, 6000);
+                } else {
+                    showContactError(data.error || 'Hiba történt az üzenet küldése során.');
+                }
+            } catch (error) {
+                showContactError('Hiba történt a szerverrel való kommunikáció során.');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-send me-2"></i>Üzenet küldése';
+        });
+
+        function showContactError(msg) {
+            let errorDiv = document.getElementById('errorMessage');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'errorMessage';
+                errorDiv.className = 'alert';
+                errorDiv.style.cssText = 'background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171; border-radius:10px;';
+                document.getElementById('successMessage').insertAdjacentElement('afterend', errorDiv);
+            }
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + msg;
+            errorDiv.style.display = 'block';
+            setTimeout(() => { errorDiv.style.display = 'none'; }, 5000);
+        }
+
+        // Bejelentkezés ellenőrzés + email auto-kitöltés
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isLoggedIn()) {
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('loginRequired').style.display = 'block';
+            } else {
+                const user = getUser();
+                if (user) {
+                    const emailField = document.getElementById('email');
+                    if (emailField && user.email) {
+                        emailField.value = user.email;
+                        emailField.setAttribute('readonly', 'true');
+                        emailField.style.opacity = '0.7';
+                        emailField.style.cursor = 'not-allowed';
+                    }
+                    const nameField = document.getElementById('name');
+                    if (nameField && !nameField.value && user.full_name) {
+                        nameField.value = user.full_name;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

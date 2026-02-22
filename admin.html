@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — GameCube</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        :root {
+            --gc-primary: #a855f7;
+            --gc-secondary: #06b6d4;
+            --gc-accent: #f59e0b;
+            --gc-bg-start: #0f0520;
+            --gc-bg-end: #1a0b2e;
+            --gc-card-border: rgba(168, 85, 247, 0.2);
+            --gc-text: #f1f5f9;
+            --gc-text-muted: #94a3b8;
+            --sidebar-w: 260px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: linear-gradient(135deg, var(--gc-bg-start), var(--gc-bg-end));
+            background-attachment: fixed;
+            color: var(--gc-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(circle at 15% 25%, rgba(168,85,247,.18) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(6,182,212,.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(245,158,11,.06) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
+            animation: pulseGlow 8s ease-in-out infinite;
+        }
+        @keyframes pulseGlow { 0%,100%{opacity:.6}50%{opacity:1} }
+
+        .admin-wrapper { display: flex; min-height: 100vh; position: relative; z-index: 2; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: rgba(10, 3, 22, 0.95);
+            border-right: 1px solid var(--gc-card-border);
+            backdrop-filter: blur(24px);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; z-index: 100;
+            box-shadow: 4px 0 40px rgba(0,0,0,.5), 2px 0 20px rgba(168,85,247,.08);
+        }
+        .sidebar-brand {
+            padding: 1.75rem 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--gc-card-border);
+            display: flex; align-items: center; gap: .75rem;
+            text-decoration: none;
+        }
+        .sidebar-brand .gc-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--gc-primary), var(--gc-secondary));
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(168,85,247,.5);
+            flex-shrink: 0;
+        }
+        .sidebar-brand-text { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; line-height: 1; }
+        .sidebar-brand-sub { font-size: .65rem; font-weight: 500; color: var(--gc-primary); letter-spacing: .15em; text-transform: uppercase; margin-top: 2px; }
+
+        .sidebar-section { padding: 1.5rem 1rem .5rem; }
+        .sidebar-section-label { font-size: .65rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gc-text-muted); padding: 0 .5rem; margin-bottom: .5rem; }
+        .sidebar-nav { list-style: none; padding: 0; }
+        .sidebar-nav li a {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .65rem .75rem; border-radius: 10px;
+            text-decoration: none; color: var(--gc-text-muted);
+            font-size: .875rem; font-weight: 500;
+            transition: all .2s ease; margin-bottom: 2px;
+        }
+        .sidebar-nav li a:hover { background: rgba(168,85,247,.1); color: #fff; }
+        .sidebar-nav li a.active {
+            background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(6,182,212,.12));
+            color: #fff; border: 1px solid rgba(168,85,247,.3);
+            box-shadow: 0 0 15px rgba(168,85,247,.15);
+        }
+        .sidebar-nav li a.active i { color: var(--gc-primary); }
+        .sidebar-nav li a i { font-size: 1rem; width: 20px; text-align: center; }
+        .sidebar-badge {
+            margin-left: auto; font-size: .65rem; padding: 2px 8px;
+            border-radius: 20px; background: rgba(168,85,247,.2); color: var(--gc-primary); font-weight: 600;
+        }
+        .sidebar-footer { margin-top: auto; padding: 1.25rem 1rem; border-top: 1px solid var(--gc-card-border); }
+        .sidebar-user {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .5rem .75rem; border-radius: 10px;
+            background: rgba(168,85,247,.06);
+        }
+        .sidebar-avatar {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--gc-primary), var(--gc-secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: .8rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .sidebar-user-name { font-size: .8rem; font-weight: 600; color: var(--gc-text); }
+        .sidebar-user-role { font-size: .65rem; color: var(--gc-primary); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; }
+
+        /* MAIN */
+        .main-content { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* TOPBAR */
+        .topbar {
+            background: rgba(10,3,22,.7); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gc-card-border);
+            padding: .875rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { display: flex; align-items: center; gap: .75rem; }
+        .topbar-title h1 { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; margin: 0; }
+        .topbar-breadcrumb { font-size: .75rem; color: var(--gc-text-muted); margin-top: 1px; }
+        .topbar-breadcrumb span { color: var(--gc-primary); }
+        .topbar-actions { display: flex; align-items: center; gap: .75rem; }
+        .topbar-btn {
+            display: flex; align-items: center; gap: .5rem;
+            padding: .45rem .9rem; border-radius: 8px; font-size: .8rem; font-weight: 500;
+            border: 1px solid var(--gc-card-border); background: rgba(168,85,247,.08);
+            color: var(--gc-text-muted); cursor: pointer; text-decoration: none; transition: all .2s;
+        }
+        .topbar-btn:hover { background: rgba(168,85,247,.18); color: #fff; border-color: var(--gc-primary); }
+        .topbar-btn.danger { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.06); }
+        .topbar-btn.danger:hover { background: rgba(239,68,68,.18); color: #ef4444; border-color: #ef4444; }
+
+        /* PAGE BODY */
+        .page-body { padding: 2rem; flex: 1; }
+
+        /* STAT GRID */
+        .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin-bottom: 2rem; }
+        .stat-card {
+            background: rgba(139,92,246,.05); border: 1px solid var(--gc-card-border);
+            border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden;
+            transition: transform .25s, box-shadow .25s;
+            animation: fadeUp .5s ease both;
+        }
+        .stat-card:nth-child(2){animation-delay:.08s}
+        .stat-card:nth-child(3){animation-delay:.16s}
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(168,85,247,.2); border-color: rgba(168,85,247,.4); }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+        .stat-card.s-total::before  { background: linear-gradient(90deg, var(--gc-primary), var(--gc-secondary)); }
+        .stat-card.s-pending::before{ background: linear-gradient(90deg, #f59e0b, #ef4444); }
+        .stat-card.s-paid::before   { background: linear-gradient(90deg, #10b981, #06b6d4); }
+        .stat-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
+        .stat-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--gc-text-muted); }
+        .stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .stat-icon.purple { background: rgba(168,85,247,.15); color: var(--gc-primary); }
+        .stat-icon.amber  { background: rgba(245,158,11,.15); color: #f59e0b; }
+        .stat-icon.green  { background: rgba(16,185,129,.15); color: #10b981; }
+        .stat-number { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1; color: #fff; margin-bottom: .25rem; }
+        .stat-sub { font-size: .75rem; color: var(--gc-text-muted); }
+
+        /* PANEL CARD */
+        .panel-card {
+            background: rgba(139,92,246,.04); border: 1px solid var(--gc-card-border);
+            border-radius: 16px; overflow: hidden; margin-bottom: 1.5rem;
+            animation: fadeUp .5s .24s ease both;
+        }
+        .panel-header {
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gc-card-border);
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,.2);
+        }
+        .panel-title { font-family: 'Orbitron', sans-serif; font-size: .85rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: .5rem; }
+        .panel-title i { color: var(--gc-primary); }
+
+        /* FILTERS */
+        .filter-bar {
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(168,85,247,.1);
+            display: flex; gap: 1rem; align-items: flex-end;
+            background: rgba(0,0,0,.1); flex-wrap: wrap;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: .4rem; flex: 1; min-width: 160px; }
+        .filter-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--gc-text-muted); }
+        .filter-select {
+            background: rgba(10,3,22,.8); border: 1px solid var(--gc-card-border);
+            border-radius: 8px; color: var(--gc-text); padding: .45rem .75rem;
+            font-size: .8rem; font-family: 'Sora', sans-serif; transition: border-color .2s; outline: none;
+        }
+        .filter-select:focus { border-color: var(--gc-primary); box-shadow: 0 0 0 3px rgba(168,85,247,.15); }
+        .filter-select option { background: #0f0520; }
+        .btn-refresh {
+            display: flex; align-items: center; gap: .5rem;
+            padding: .5rem 1.25rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
+            font-family: 'Sora', sans-serif;
+            border: 1px solid rgba(168,85,247,.4);
+            background: linear-gradient(135deg, rgba(168,85,247,.2), rgba(6,182,212,.1));
+            color: #fff; cursor: pointer; transition: all .2s; white-space: nowrap;
+        }
+        .btn-refresh:hover { background: linear-gradient(135deg, rgba(168,85,247,.4), rgba(6,182,212,.2)); border-color: var(--gc-primary); box-shadow: 0 0 20px rgba(168,85,247,.3); }
+
+        /* TABLE */
+        .table-wrap { overflow-x: auto; }
+        .gc-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .8rem; }
+        .gc-table thead tr { background: rgba(0,0,0,.3); }
+        .gc-table thead th {
+            padding: .875rem 1.25rem; text-align: left;
+            font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
+            color: var(--gc-text-muted); border-bottom: 1px solid rgba(168,85,247,.15); white-space: nowrap;
+        }
+        .gc-table tbody tr { border-bottom: 1px solid rgba(168,85,247,.06); transition: background .15s; }
+        .gc-table tbody tr:hover { background: rgba(168,85,247,.06); }
+        .gc-table tbody tr:last-child { border-bottom: none; }
+        .gc-table tbody td { padding: 1rem 1.25rem; color: var(--gc-text); vertical-align: middle; }
+        .order-id { font-family: 'Orbitron', sans-serif; font-size: .75rem; font-weight: 700; color: var(--gc-primary); }
+        .date-cell { color: var(--gc-text-muted); font-size: .78rem; }
+        .user-cell { display: flex; align-items: center; gap: .6rem; }
+        .user-mini-av {
+            width: 28px; height: 28px; border-radius: 6px;
+            background: linear-gradient(135deg, var(--gc-primary), var(--gc-secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: .65rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .amount-cell { font-weight: 700; font-size: .875rem; color: #fff; }
+        .amount-suffix { color: var(--gc-text-muted); font-size: .7rem; font-weight: 400; margin-left: 2px; }
+
+        .pay-badge {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .3rem .7rem; border-radius: 6px; font-size: .72rem; font-weight: 600;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--gc-text-muted);
+        }
+        .pay-badge.card   { border-color: rgba(6,182,212,.3); color: #06b6d4; background: rgba(6,182,212,.08); }
+        .pay-badge.bank   { border-color: rgba(245,158,11,.3); color: #f59e0b; background: rgba(245,158,11,.08); }
+        .pay-badge.paypal { border-color: rgba(59,130,246,.3); color: #60a5fa; background: rgba(59,130,246,.08); }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .3rem .8rem; border-radius: 20px; font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+        }
+        .status-pill::before { content:''; width:6px; height:6px; border-radius:50%; }
+        .status-pill.pending  { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+        .status-pill.pending::before  { background:#f59e0b; box-shadow:0 0 6px #f59e0b; animation: blink 1.5s ease-in-out infinite; }
+        .status-pill.paid     { background: rgba(16,185,129,.12); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+        .status-pill.paid::before     { background:#10b981; }
+        .status-pill.cancelled{ background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+        .status-pill.cancelled::before{ background:#ef4444; }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+        .btn-approve {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .4rem .9rem; border-radius: 8px; font-size: .75rem; font-weight: 600;
+            font-family: 'Sora', sans-serif;
+            border: 1px solid rgba(16,185,129,.4); background: rgba(16,185,129,.12); color: #10b981;
+            cursor: pointer; transition: all .2s; white-space: nowrap;
+        }
+        .btn-approve:hover { background: rgba(16,185,129,.25); border-color: #10b981; box-shadow: 0 0 15px rgba(16,185,129,.3); transform: translateY(-1px); }
+
+        .empty-state { padding: 4rem 2rem; text-align: center; }
+        .empty-state i { font-size: 2.5rem; color: var(--gc-text-muted); opacity: .4; margin-bottom: 1rem; display: block; }
+        .empty-state p { color: var(--gc-text-muted); font-size: .875rem; }
+
+        .loading-row td { padding: 3rem !important; text-align: center; }
+        .gc-spinner { width: 36px; height: 36px; border: 3px solid rgba(168,85,247,.2); border-top-color: var(--gc-primary); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto .75rem; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        /* INFO BANNER */
+        .info-banner {
+            background: rgba(6,182,212,.05); border: 1px solid rgba(6,182,212,.2);
+            border-radius: 12px; padding: 1.25rem 1.5rem;
+            display: flex; gap: 1rem; align-items: flex-start;
+            animation: fadeUp .5s .32s ease both;
+        }
+        .info-banner > i { color: var(--gc-secondary); font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
+        .info-banner p { font-size: .8rem; color: var(--gc-text-muted); margin: 0; line-height: 1.6; }
+        .info-banner p + p { margin-top: .4rem; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .stat-grid { grid-template-columns: 1fr; }
+            .page-body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-brand">
+            <div class="gc-logo"></div>
+            <div>
+                <div class="sidebar-brand-text">GameCube</div>
+                <div class="sidebar-brand-sub">Admin Panel</div>
+            </div>
+        </a>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Főmenü</div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active"><i class="bi bi-grid-1x2"></i>Áttekintés</a></li>
+                <li><a href="#"><i class="bi bi-receipt-cutoff"></i>Rendelések<span class="sidebar-badge" id="pendingCount">—</span></a></li>
+                <li><a href="#"><i class="bi bi-people"></i>Felhasználók</a></li>
+                <li><a href="#"><i class="bi bi-controller"></i>Játékok</a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Navigáció</div>
+            <ul class="sidebar-nav">
+                <li><a href="#"><i class="bi bi-bar-chart-line"></i>Statisztikák</a></li>
+                <li><a href="index.html"><i class="bi bi-house"></i>Vissza a webshopba</a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar" id="sidebarInitial">A</div>
+                <div>
+                    <div class="sidebar-user-name" id="sidebarName">Admin</div>
+                    <div class="sidebar-user-role">Adminisztrátor</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-title">
+                <i class="bi bi-shield-check" style="color:var(--gc-primary);font-size:1.1rem;"></i>
+                <div>
+                    <h1>Admin Panel</h1>
+                    <div class="topbar-breadcrumb">GameCube / <span>Rendelések kezelése</span></div>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <span id="userGreeting" class="topbar-btn" style="cursor:default;color:var(--gc-text-muted);"></span>
+                <div id="profileNavItem" class="d-none">
+                    <a href="profile.html" class="topbar-btn"><i class="bi bi-person"></i> Profil</a>
+                </div>
+                <div id="adminNavItem" class="d-none">
+                    <a href="admin.html" class="topbar-btn"><i class="bi bi-shield-check"></i> Admin</a>
+                </div>
+                <button id="logoutBtn" class="topbar-btn danger" style="display:none;">
+                    <i class="bi bi-box-arrow-right"></i> Kilépés
+                </button>
+            </div>
+        </div>
+
+        <!-- PAGE BODY -->
+        <div class="page-body">
+
+            <!-- STAT CARDS -->
+            <div class="stat-grid">
+                <div class="stat-card s-total">
+                    <div class="stat-head">
+                        <div class="stat-label">Összes rendelés</div>
+                        <div class="stat-icon purple"><i class="bi bi-receipt"></i></div>
+                    </div>
+                    <div class="stat-number" id="statTotal">—</div>
+                    <div class="stat-sub">Minden idők</div>
+                </div>
+                <div class="stat-card s-pending">
+                    <div class="stat-head">
+                        <div class="stat-label">Függőben</div>
+                        <div class="stat-icon amber"><i class="bi bi-clock-history"></i></div>
+                    </div>
+                    <div class="stat-number" id="statPending">—</div>
+                    <div class="stat-sub">Jóváhagyásra vár</div>
+                </div>
+                <div class="stat-card s-paid">
+                    <div class="stat-head">
+                        <div class="stat-label">Teljesítve</div>
+                        <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+                    </div>
+                    <div class="stat-number" id="statPaid">—</div>
+                    <div class="stat-sub">Sikeres fizetés</div>
+                </div>
+            </div>
+
+            <!-- ORDERS PANEL -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title"><i class="bi bi-list-ul"></i> Rendelési lista</div>
+                    <button class="btn-refresh" onclick="loadOrders()"><i class="bi bi-arrow-clockwise"></i> Frissítés</button>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label class="filter-label" for="statusFilter">Státusz</label>
+                        <select class="filter-select" id="statusFilter">
+                            <option value="all">Összes státusz</option>
+                            <option value="pending">Függőben</option>
+                            <option value="paid">Fizetve</option>
+                            <option value="cancelled">Törölve</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label" for="paymentFilter">Fizetési mód</label>
+                        <select class="filter-select" id="paymentFilter">
+                            <option value="all">Összes mód</option>
+                            <option value="online_card">Online kártya</option>
+                            <option value="bank_transfer">Banki átutalás</option>
+                            <option value="paypal">PayPal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="gc-table">
+                        <thead>
+                            <tr>
+                                <th>Rendelés #</th>
+                                <th>Dátum</th>
+                                <th>Felhasználó</th>
+                                <th>Összeg</th>
+                                <th>Fizetési mód</th>
+                                <th>Státusz</th>
+                                <th>Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            <tr class="loading-row">
+                                <td colspan="7">
+                                    <div class="gc-spinner"></div>
+                                    <p style="color:var(--gc-text-muted);font-size:.8rem;">Rendelések betöltése…</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- INFO BANNER -->
+            <div class="info-banner">
+                <i class="bi bi-info-circle-fill"></i>
+                <div>
+                    <p>Banki átutalással fizetett rendelések jóváhagyása után a rendszer automatikusan kiosztja a játékkulcsokat a felhasználónak.</p>
+                    <p>Online kártyás és PayPal fizetéseknél a kulcsok azonnal kiosztásra kerülnek a sikeres tranzakció után.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/admin-auth.js?v=fix3"></script>
+<script src="assets/js/auth.js?v=fix3"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('token');
+    const user  = localStorage.getItem('user');
+    if (token && user) {
+        try {
+            const parsed = JSON.parse(user);
+            if (parsed.role === 'admin') {
+                const name = parsed.username || parsed.name || 'Admin';
+                document.getElementById('sidebarName').textContent = name;
+                document.getElementById('sidebarInitial').textContent = name.charAt(0).toUpperCase();
+                loadOrders();
+                return;
+            }
+        } catch {}
+    }
+    document.body.innerHTML = `
+        <style>body{margin:0;background:#0f0520;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Sora',sans-serif;}</style>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+        <div style="text-align:center;padding:2rem;max-width:480px;">
+            <div style="font-size:4rem;margin-bottom:1rem;">🔒</div>
+            <h1 style="font-family:'Orbitron',sans-serif;color:#ef4444;font-size:1.6rem;margin-bottom:.5rem;">Hozzáférés megtagadva</h1>
+            <p style="color:#94a3b8;margin-bottom:2rem;line-height:1.6;">Ez az oldal kizárólag adminisztrátorok számára elérhető.</p>
+            <a href="index.html" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;text-decoration:none;border-radius:10px;padding:.75rem 2rem;font-weight:600;display:inline-block;">Vissza a főoldalra</a>
+        </div>`;
+});
+
+async function loadOrders() {
+    document.getElementById('ordersBody').innerHTML = `<tr class="loading-row"><td colspan="7"><div class="gc-spinner"></div><p style="color:var(--gc-text-muted);font-size:.8rem;">Betöltés…</p></td></tr>`;
+    try {
+        const data = await apiRequest('admin/orders.php');
+        if (data.success) displayOrders(data.orders);
+    } catch {
+        document.getElementById('ordersBody').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:3rem;color:#ef4444;"><i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:.75rem;"></i>Hiba a betöltés során</td></tr>`;
+    }
+}
+
+function displayOrders(orders) {
+    document.getElementById('statTotal').textContent   = orders.length;
+    document.getElementById('statPending').textContent = orders.filter(o=>o.status==='pending').length;
+    document.getElementById('statPaid').textContent    = orders.filter(o=>o.status==='paid').length;
+    document.getElementById('pendingCount').textContent = orders.filter(o=>o.status==='pending').length;
+
+    const tbody = document.getElementById('ordersBody');
+    if (!orders.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i><p>Nincs megjeleníthető rendelés</p></div></td></tr>`;
+        return;
+    }
+    const payClass = {online_card:'card',bank_transfer:'bank',paypal:'paypal'};
+    const payIcon  = {online_card:'bi-credit-card-2-front',bank_transfer:'bi-bank',paypal:'bi-paypal'};
+    tbody.innerHTML = orders.map(o => `
+        <tr>
+            <td><span class="order-id">#${o.id}</span></td>
+            <td><span class="date-cell">${formatDate(o.created_at)}</span></td>
+            <td><div class="user-cell"><div class="user-mini-av">${escapeHtml(o.username).charAt(0).toUpperCase()}</div>${escapeHtml(o.username)}</div></td>
+            <td><span class="amount-cell">${formatPrice(o.total_price)}<span class="amount-suffix">Ft</span></span></td>
+            <td><span class="pay-badge ${payClass[o.payment_method]||''}"><i class="bi ${payIcon[o.payment_method]||'bi-cash'}"></i>${getPaymentMethodLabel(o.payment_method)}</span></td>
+            <td><span class="status-pill ${o.status}">${getStatusLabel(o.status)}</span></td>
+            <td>${o.status==='pending'?`<button class="btn-approve" onclick="approveOrder(${o.id})"><i class="bi bi-check-lg"></i> Jóváhagyás</button>`:'<span style="color:var(--gc-text-muted);font-size:.8rem;">—</span>'}</td>
+        </tr>`).join('');
+}
+
+async function approveOrder(orderId) {
+    if (!confirm('Biztosan jóváhagyod ezt a rendelést? A kulcsok automatikusan kiosztásra kerülnek.')) return;
+    try {
+        const data = await apiRequest('admin/orders.php',{method:'POST',body:JSON.stringify({order_id:orderId})});
+        if (data.success) { alert(data.message); loadOrders(); }
+    } catch (e) { alert(e.message||'Hiba a jóváhagyás során'); }
+}
+
+function filterOrders() {
+    const s = document.getElementById('statusFilter').value;
+    const p = document.getElementById('paymentFilter').value;
+    document.querySelectorAll('#ordersBody tr').forEach(row => {
+        const sc = row.querySelector('td:nth-child(6)');
+        const pc = row.querySelector('td:nth-child(5)');
+        if (!sc||!pc) return;
+        const sm = s==='all'||sc.textContent.trim().toLowerCase().includes(getStatusLabel(s).toLowerCase());
+        const pm = p==='all'||pc.textContent.includes(getPaymentMethodLabel(p));
+        row.style.display=(sm&&pm)?'':'none';
+    });
+}
+document.getElementById('statusFilter')?.addEventListener('change',filterOrders);
+document.getElementById('paymentFilter')?.addEventListener('change',filterOrders);
+
+function getStatusLabel(s){return{pending:'Függőben',paid:'Fizetve',cancelled:'Törölve'}[s]||s;}
+function getPaymentMethodLabel(m){return{online_card:'Online kártya',bank_transfer:'Banki átutalás',paypal:'PayPal'}[m]||m;}
+function formatDate(d){return new Date(d).toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function formatPrice(p){return new Intl.NumberFormat('hu-HU').format(p);}
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+</script>
+</body>
+</html>
