@@ -19,5 +19,5 @@ Tabi Kevin
 Németh Barna Kristóf
 
 
-Jira link, ha van
+Jira link:
 https://tabikevin.atlassian.net/jira/software/projects/SCRUM/summary
