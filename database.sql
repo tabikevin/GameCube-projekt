@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 23. 08:28
+-- Létrehozás ideje: 2026. Ápr 20. 10:22
 -- Kiszolgáló verziója: 8.0.40
 -- PHP verzió: 8.3.14
 
@@ -20,8 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Adatbázis: `gamecube`
 --
-CREATE DATABASE IF NOT EXISTS `gamecube` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `gamecube`;
 
 DELIMITER $$
 --
@@ -2056,34 +2054,36 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_update_user_profile` (IN `p_user
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_create` (IN `p_username` VARCHAR(50), IN `p_email` VARCHAR(100), IN `p_password_hash` VARCHAR(255), IN `p_full_name` VARCHAR(100), IN `p_phone` VARCHAR(20), IN `p_role` ENUM('user','admin'), OUT `p_new_id` INT, OUT `p_success` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_create` (IN `p_username` VARCHAR(50), IN `p_email` VARCHAR(100), IN `p_password_hash` VARCHAR(255), IN `p_full_name` VARCHAR(100), IN `p_phone` VARCHAR(20), IN `p_role` ENUM('user','seller','both','admin'), OUT `p_new_id` INT, OUT `p_success` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
+        SET p_new_id = 0;
         SET p_success = FALSE;
-        SET p_message = 'Hiba történt a felhasználó létrehozása során';
+        SET p_message = 'Adatbázis hiba történt';
         ROLLBACK;
     END;
-    
+
     START TRANSACTION;
-    
+
     IF EXISTS (SELECT 1 FROM users WHERE username = p_username) THEN
+        SET p_new_id = 0;
         SET p_success = FALSE;
-        SET p_message = 'Ez a felhasználónév már foglalt';
-        SET p_new_id = NULL;
+        SET p_message = 'A felhasználónév már foglalt';
+        ROLLBACK;
     ELSEIF EXISTS (SELECT 1 FROM users WHERE email = p_email) THEN
+        SET p_new_id = 0;
         SET p_success = FALSE;
-        SET p_message = 'Ez az email cím már regisztrálva van';
-        SET p_new_id = NULL;
+        SET p_message = 'Az e-mail cím már foglalt';
+        ROLLBACK;
     ELSE
         INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active)
         VALUES (p_username, p_email, p_password_hash, p_full_name, p_phone, IFNULL(p_role, 'user'), 1);
-        
+
         SET p_new_id = LAST_INSERT_ID();
         SET p_success = TRUE;
         SET p_message = 'Felhasználó sikeresen létrehozva';
+        COMMIT;
     END IF;
-    
-    COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_delete` (IN `p_id` INT, IN `p_hard_delete` BOOLEAN, OUT `p_success` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
@@ -2112,24 +2112,29 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_delete` (IN `p_id` INT, IN
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_get_all` (IN `p_page` INT, IN `p_page_size` INT, IN `p_role` ENUM('user','admin'), IN `p_is_active` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_get_all` (IN `p_page` INT, IN `p_page_size` INT, IN `p_role` ENUM('user','seller','both','admin'), IN `p_is_active` TINYINT)   BEGIN
     DECLARE v_offset INT;
-    DECLARE v_limit INT;
-    SET v_limit = IFNULL(p_page_size, 20);
-    SET v_offset = (IFNULL(p_page, 1) - 1) * v_limit;
-    
-    SELECT id, username, email, full_name, phone, role, is_active, 
-           created_at, updated_at, last_login_at
-    FROM users
-    WHERE (p_role IS NULL OR role = p_role)
-      AND (p_is_active IS NULL OR is_active = p_is_active)
-    ORDER BY created_at DESC
-    LIMIT v_limit OFFSET v_offset;
-    
-    SELECT COUNT(*) as total_count
-    FROM users
-    WHERE (p_role IS NULL OR role = p_role)
-      AND (p_is_active IS NULL OR is_active = p_is_active);
+
+    IF p_page IS NOT NULL AND p_page_size IS NOT NULL THEN
+        SET v_offset = (p_page - 1) * p_page_size;
+
+        SELECT COUNT(*) AS total
+        FROM users
+        WHERE (p_role IS NULL OR role = p_role)
+          AND (p_is_active IS NULL OR is_active = p_is_active);
+
+        SELECT id, username, email, full_name, phone, role, is_active,
+               created_at, last_login_at
+        FROM users
+        WHERE (p_role IS NULL OR role = p_role)
+          AND (p_is_active IS NULL OR is_active = p_is_active)
+        ORDER BY id ASC
+        LIMIT v_offset, p_page_size;
+    ELSE
+        SELECT id, username, email, full_name, phone, role, is_active, created_at
+        FROM users
+        ORDER BY id ASC;
+    END IF;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_get_by_id` (IN `p_id` INT)   BEGIN
@@ -2154,25 +2159,20 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_search` (IN `p_search_term
     LIMIT v_limit;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_update` (IN `p_id` INT, IN `p_username` VARCHAR(50), IN `p_email` VARCHAR(100), IN `p_full_name` VARCHAR(100), IN `p_phone` VARCHAR(20), IN `p_role` ENUM('user','admin'), IN `p_is_active` TINYINT, OUT `p_success` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_update` (IN `p_id` INT, IN `p_username` VARCHAR(50), IN `p_email` VARCHAR(100), IN `p_full_name` VARCHAR(100), IN `p_phone` VARCHAR(20), IN `p_role` ENUM('user','seller','both','admin'), IN `p_is_active` TINYINT, OUT `p_success` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         SET p_success = FALSE;
-        SET p_message = 'Hiba történt a felhasználó módosítása során';
+        SET p_message = 'Adatbázis hiba történt';
         ROLLBACK;
     END;
-    
+
     START TRANSACTION;
-    
+
     IF NOT EXISTS (SELECT 1 FROM users WHERE id = p_id) THEN
         SET p_success = FALSE;
         SET p_message = 'A felhasználó nem található';
-    ELSEIF p_username IS NOT NULL AND EXISTS (SELECT 1 FROM users WHERE username = p_username AND id != p_id) THEN
-        SET p_success = FALSE;
-        SET p_message = 'Ez a felhasználónév már foglalt';
-    ELSEIF p_email IS NOT NULL AND EXISTS (SELECT 1 FROM users WHERE email = p_email AND id != p_id) THEN
-        SET p_success = FALSE;
-        SET p_message = 'Ez az email cím már használatban van';
+        ROLLBACK;
     ELSE
         UPDATE users SET
             username = IFNULL(p_username, username),
@@ -2180,15 +2180,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_users_update` (IN `p_id` INT, IN
             full_name = IFNULL(p_full_name, full_name),
             phone = IFNULL(p_phone, phone),
             role = IFNULL(p_role, role),
-            is_active = IFNULL(p_is_active, is_active),
-            updated_at = CURRENT_TIMESTAMP
+            is_active = IFNULL(p_is_active, is_active)
         WHERE id = p_id;
-        
+
         SET p_success = TRUE;
-        SET p_message = 'Felhasználó sikeresen módosítva';
+        SET p_message = 'Felhasználó frissítve';
+        COMMIT;
     END IF;
-    
-    COMMIT;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validate_coupon` (IN `p_code` VARCHAR(50), IN `p_order_total` INT, OUT `p_discount_amount` INT, OUT `p_is_valid` BOOLEAN, OUT `p_message` VARCHAR(255))   BEGIN
@@ -2271,13 +2269,13 @@ DELIMITER ;
 
 CREATE TABLE `audit_log` (
   `id` int NOT NULL,
-  `table_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `table_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `record_id` int NOT NULL,
-  `action` enum('INSERT','UPDATE','DELETE') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `old_values` json DEFAULT NULL,
   `new_values` json DEFAULT NULL,
   `user_id` int DEFAULT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -2286,7 +2284,13 @@ CREATE TABLE `audit_log` (
 --
 
 INSERT INTO `audit_log` (`id`, `table_name`, `record_id`, `action`, `old_values`, `new_values`, `user_id`, `ip_address`, `created_at`) VALUES
-(1, 'users', 3, 'UPDATE', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-02-23 08:19:55');
+(1, 'users', 3, 'UPDATE', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-02-23 08:19:55'),
+(2, 'users', 3, 'UPDATE', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 08:52:00'),
+(3, 'users', 3, 'UPDATE', '{\"role\": \"user\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"both\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 08:52:50'),
+(4, 'users', 3, 'UPDATE', '{\"role\": \"both\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"both\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 08:53:02'),
+(5, 'users', 3, 'UPDATE', '{\"role\": \"both\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"seller\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 08:55:48'),
+(6, 'users', 3, 'UPDATE', '{\"role\": \"seller\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"seller\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 08:56:06'),
+(7, 'users', 3, 'UPDATE', '{\"role\": \"seller\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', '{\"role\": \"seller\", \"email\": \"tabikevin@icloud.com\", \"username\": \"tabikevin\", \"is_active\": 1}', NULL, NULL, '2026-04-20 09:07:23');
 
 -- --------------------------------------------------------
 
@@ -2297,7 +2301,7 @@ INSERT INTO `audit_log` (`id`, `table_name`, `record_id`, `action`, `old_values`
 CREATE TABLE `cart` (
   `id` int NOT NULL,
   `user_id` int DEFAULT NULL,
-  `session_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `session_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `product_id` int NOT NULL,
   `quantity` int NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2328,8 +2332,8 @@ CREATE TABLE `contact_messages` (
 
 CREATE TABLE `coupons` (
   `id` int NOT NULL,
-  `code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `discount_type` enum('percent','fixed') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `discount_type` enum('percent','fixed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `discount_value` int NOT NULL,
   `min_order_value` int DEFAULT '0',
   `max_uses` int DEFAULT NULL,
@@ -2371,11 +2375,13 @@ CREATE TABLE `favorites` (
 CREATE TABLE `game_keys` (
   `id` int NOT NULL,
   `product_id` int NOT NULL,
-  `key_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_sold` tinyint(1) DEFAULT '0',
   `sold_to_user_id` int DEFAULT NULL,
   `sold_at` timestamp NULL DEFAULT NULL,
   `order_id` int DEFAULT NULL,
+  `seller_id` int DEFAULT NULL,
+  `seller_price` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -2383,120 +2389,120 @@ CREATE TABLE `game_keys` (
 -- A tábla adatainak kiíratása `game_keys`
 --
 
-INSERT INTO `game_keys` (`id`, `product_id`, `key_code`, `is_sold`, `sold_to_user_id`, `sold_at`, `order_id`, `created_at`) VALUES
-(1, 1, 'CYBER-2077-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(2, 1, 'CYBER-2077-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(3, 1, 'CYBER-2077-DDDD-EEEE-FFFF', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(4, 2, 'ELDEN-RING-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(5, 2, 'ELDEN-RING-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(6, 2, 'ELDEN-RING-DDDD-EEEE-FFFF', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(7, 3, 'FC25-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(8, 3, 'FC25-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(9, 4, 'GTA5X-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(10, 4, 'GTA5X-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(11, 4, 'GTA5X-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(12, 5, 'W3WH-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(13, 5, 'W3WH-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(14, 5, 'W3WH-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(15, 6, 'MC-JAVA-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(16, 6, 'MC-JAVA-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(17, 7, 'RDR2-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(18, 7, 'RDR2-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(19, 8, 'GOW-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(20, 8, 'GOW-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(21, 9, 'HOGW-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(22, 9, 'HOGW-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(23, 9, 'HOGW-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(24, 10, 'STEAM-10E-XXXX-YYYY-ZZZ', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(25, 10, 'STEAM-10E-AAAA-BBBB-CCC', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(26, 10, 'STEAM-10E-DDDD-EEEE-FFF', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(27, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(28, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(29, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(30, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(31, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(32, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(33, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(34, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(35, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(36, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(37, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(38, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(39, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(40, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(41, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(42, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(43, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(44, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(45, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(46, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(47, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(48, 18, 'STM10E-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(49, 18, 'STM10E-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(50, 18, 'STM10E-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(51, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(52, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(53, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(54, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(55, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(56, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(57, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(58, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(59, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(60, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(61, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(62, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(63, 23, 'REVILL-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(64, 23, 'REVILL-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(65, 23, 'REVILL-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(66, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(67, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(68, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(69, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(70, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(71, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(72, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(73, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(74, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(75, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(76, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(77, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(78, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(79, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(80, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(81, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(82, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(83, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(84, 30, 'F124XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(85, 30, 'F124XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(86, 30, 'F124XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(87, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(88, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(89, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(90, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(91, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(92, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(93, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(94, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(95, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(96, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(97, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(98, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(99, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(100, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(101, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(102, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(103, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(104, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(105, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(106, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(107, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(108, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(109, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(110, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(111, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(112, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, '2026-02-22 19:46:50'),
-(113, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, '2026-02-22 19:46:50');
+INSERT INTO `game_keys` (`id`, `product_id`, `key_code`, `is_sold`, `sold_to_user_id`, `sold_at`, `order_id`, `seller_id`, `seller_price`, `created_at`) VALUES
+(1, 1, 'CYBER-2077-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(2, 1, 'CYBER-2077-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(3, 1, 'CYBER-2077-DDDD-EEEE-FFFF', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(4, 2, 'ELDEN-RING-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(5, 2, 'ELDEN-RING-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(6, 2, 'ELDEN-RING-DDDD-EEEE-FFFF', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(7, 3, 'FC25-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(8, 3, 'FC25-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(9, 4, 'GTA5X-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(10, 4, 'GTA5X-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(11, 4, 'GTA5X-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(12, 5, 'W3WH-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(13, 5, 'W3WH-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(14, 5, 'W3WH-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(15, 6, 'MC-JAVA-XXXX-YYYY-ZZZZ', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(16, 6, 'MC-JAVA-AAAA-BBBB-CCCC', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(17, 7, 'RDR2-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(18, 7, 'RDR2-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(19, 8, 'GOW-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(20, 8, 'GOW-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(21, 9, 'HOGW-XXXX-YYYY-ZZZZ-AAAA', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(22, 9, 'HOGW-BBBB-CCCC-DDDD-EEEE', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(23, 9, 'HOGW-FFFF-GGGG-HHHH-IIII', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(24, 10, 'STEAM-10E-XXXX-YYYY-ZZZ', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(25, 10, 'STEAM-10E-AAAA-BBBB-CCC', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(26, 10, 'STEAM-10E-DDDD-EEEE-FFF', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(27, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(28, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(29, 11, 'CP77PC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(30, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(31, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(32, 12, 'ELDENPS-XXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(33, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(34, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(35, 13, 'FC25XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(36, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(37, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(38, 14, 'GTA5XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(39, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(40, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(41, 15, 'W3WHPC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(42, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(43, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(44, 16, 'MCJBPC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(45, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(46, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(47, 17, 'VALPTS-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(48, 18, 'STM10E-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(49, 18, 'STM10E-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(50, 18, 'STM10E-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(51, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(52, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(53, 19, 'FIFA25-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(54, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(55, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(56, 20, 'ACVALH-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(57, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(58, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(59, 21, 'FRZH6X-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(60, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(61, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(62, 22, 'HALOIF-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(63, 23, 'REVILL-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(64, 23, 'REVILL-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(65, 23, 'REVILL-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(66, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(67, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(68, 24, 'GOWRAG-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(69, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(70, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(71, 25, 'RDR2XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(72, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(73, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(74, 26, 'CYBCON-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(75, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(76, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(77, 27, 'OW2PC0-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(78, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(79, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(80, 28, 'CODMW2-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(81, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(82, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(83, 29, 'SIMS4P-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(84, 30, 'F124XB-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(85, 30, 'F124XB-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(86, 30, 'F124XB-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(87, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(88, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(89, 31, 'MHRISE-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(90, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(91, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(92, 32, 'SPLAT3-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(93, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(94, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(95, 33, 'MK9NSW-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(96, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(97, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(98, 34, 'ZELDTK-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(99, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(100, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(101, 35, 'PKMNSC-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(102, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(103, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(104, 36, 'SWJEDI-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(105, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(106, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(107, 37, 'HRZFW0-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(108, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(109, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(110, 38, 'DIAB4P-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(111, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0001', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(112, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0002', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50'),
+(113, 39, 'STRDEW-XXXX-YYYY-ZZZZ-0003', 0, NULL, NULL, NULL, NULL, NULL, '2026-02-22 19:46:50');
 
 -- --------------------------------------------------------
 
@@ -2507,18 +2513,18 @@ INSERT INTO `game_keys` (`id`, `product_id`, `key_code`, `is_sold`, `sold_to_use
 CREATE TABLE `orders` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `order_number` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `order_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `total_price` int NOT NULL,
-  `status` enum('pending','paid','cancelled','refunded') COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
-  `payment_method` enum('online_card','bank_transfer','paypal','cash') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payment_transaction_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `billing_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `billing_address` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `billing_city` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `billing_zip` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `billing_country` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `billing_tax_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `notes` text COLLATE utf8mb4_unicode_ci,
+  `status` enum('pending','paid','cancelled','refunded') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
+  `payment_method` enum('online_card','bank_transfer','paypal','cash') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_transaction_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `billing_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `billing_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `billing_city` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `billing_zip` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `billing_country` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `billing_tax_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `paid_at` timestamp NULL DEFAULT NULL
@@ -2571,16 +2577,16 @@ CREATE TABLE `order_items` (
 
 CREATE TABLE `products` (
   `id` int NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `short_description` text COLLATE utf8mb4_unicode_ci,
-  `long_description` text COLLATE utf8mb4_unicode_ci,
-  `platform` enum('pc','ps','xbox','switch') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `category` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'action',
-  `tag` enum('top','new','sale','normal') COLLATE utf8mb4_unicode_ci DEFAULT 'normal',
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `short_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `long_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `platform` enum('pc','ps','xbox','switch') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'action',
+  `tag` enum('top','new','sale','normal') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'normal',
   `price` int NOT NULL,
   `original_price` int DEFAULT NULL,
   `discount_percent` int DEFAULT '0',
-  `image_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT '1',
   `view_count` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2642,12 +2648,12 @@ INSERT INTO `products` (`id`, `name`, `short_description`, `long_description`, `
 
 CREATE TABLE `users` (
   `id` int NOT NULL,
-  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `full_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `role` enum('user','seller','both','admin') COLLATE utf8mb4_unicode_ci DEFAULT 'user',
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `full_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `role` enum('user','seller','both','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'user',
   `is_active` tinyint(1) DEFAULT '1',
   `failed_login_attempts` int DEFAULT '0',
   `locked_until` timestamp NULL DEFAULT NULL,
@@ -2663,7 +2669,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `role`, `is_active`, `failed_login_attempts`, `locked_until`, `created_at`, `updated_at`, `last_login_at`) VALUES
 (1, 'admin', 'admin@gamecube.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.hfwwXJJUBMNHMB3NwW', 'Rendszergazda', NULL, 'admin', 1, 0, NULL, '2026-02-22 19:46:50', '2026-02-22 19:46:50', NULL),
 (2, 'testuser', 'test@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZRGdjGj/n3.hfwwXJJUBMNHMB3NwW', 'Teszt Felhasználó', '+36301234567', 'user', 1, 0, NULL, '2026-02-22 19:46:50', '2026-02-22 19:46:50', NULL),
-(3, 'tabikevin', 'tabikevin@icloud.com', '$2y$10$nmb.iaP2JO2RiFM98UjyZOQviMrqSs1165jVTzu04cw/zhg6AZARO', 'Tabi Kevin', '', 'user', 1, 0, NULL, '2026-02-23 08:19:49', '2026-02-23 08:19:55', '2026-02-23 08:19:55');
+(3, 'tabikevin', 'tabikevin@icloud.com', '$2y$10$nmb.iaP2JO2RiFM98UjyZOQviMrqSs1165jVTzu04cw/zhg6AZARO', 'Tabi Kevin', '', 'seller', 1, 0, NULL, '2026-02-23 08:19:49', '2026-04-20 09:07:23', '2026-04-20 09:07:23');
 
 --
 -- Eseményindítók `users`
@@ -2873,7 +2879,8 @@ ALTER TABLE `game_keys`
   ADD KEY `idx_product_id` (`product_id`),
   ADD KEY `idx_is_sold` (`is_sold`),
   ADD KEY `idx_sold_to_user` (`sold_to_user_id`),
-  ADD KEY `idx_order_id` (`order_id`);
+  ADD KEY `idx_order_id` (`order_id`),
+  ADD KEY `idx_seller_id` (`seller_id`);
 
 --
 -- A tábla indexei `orders`
@@ -2926,13 +2933,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT a táblához `audit_log`
 --
 ALTER TABLE `audit_log`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT a táblához `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT a táblához `contact_messages`
