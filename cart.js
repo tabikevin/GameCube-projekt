@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearSpan = document.getElementById('yearSpan');
     if (yearSpan) yearSpan.textContent = new Date().getFullYear();
 
-    // Irányítószám: csak szám
     const zipInput = document.getElementById('billing_zip');
     if (zipInput) {
         zipInput.addEventListener('input', function() {
@@ -201,6 +200,15 @@ function proceedToCheckout() {
 document.addEventListener('DOMContentLoaded', function() {
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
+        
+        ['billing_name','billing_address','billing_city','billing_zip','billing_country'].forEach(id => {
+            document.getElementById(id)?.addEventListener('blur', () => validateBillingField(id));
+            document.getElementById(id)?.addEventListener('input', () => {
+                const el = document.getElementById(id);
+                if (el && el.classList.contains('is-invalid')) validateBillingField(id);
+            });
+        });
+
         checkoutForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -216,16 +224,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError('A kosarad üres!');
                 return;
             }
+
+            
+            const billingFields = ['billing_name','billing_address','billing_city','billing_zip','billing_country'];
+            let billingValid = true;
+            billingFields.forEach(id => { if (!validateBillingField(id)) billingValid = false; });
+
+            if (!billingValid) {
+                
+                const firstInvalid = checkoutForm.querySelector('.is-invalid');
+                if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
             
             const formData = new FormData(checkoutForm);
             
             const checkoutData = {
-                billing_name: formData.get('billing_name'),
-                billing_address: formData.get('billing_address'),
-                billing_city: formData.get('billing_city'),
-                billing_zip: formData.get('billing_zip'),
-                billing_country: formData.get('billing_country'),
-                billing_tax_number: formData.get('billing_tax_number') || '',
+                billing_name: formData.get('billing_name').trim(),
+                billing_address: formData.get('billing_address').trim(),
+                billing_city: formData.get('billing_city').trim(),
+                billing_zip: formData.get('billing_zip').trim(),
+                billing_country: formData.get('billing_country').trim(),
+                billing_tax_number: formData.get('billing_tax_number')?.trim() || '',
                 payment_method: formData.get('payment_method'),
                 _token: token
             };
@@ -323,4 +343,66 @@ function showError(message) {
     const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 3000 });
     toast.show();
     toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
+}
+
+function validateBillingField(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el) return true;
+    const val = el.value.trim();
+    let valid = true;
+    let errMsg = '';
+
+    
+    if (val.length === 0) {
+        valid = false;
+        errMsg = 'Ez a mező kötelező.';
+    } else {
+        switch (fieldId) {
+            case 'billing_name':
+                valid = val.length >= 5 && val.split(/\s+/).filter(w => w.length > 0).length >= 2;
+                errMsg = 'Add meg a teljes nevet (pl. Kovács János).';
+                break;
+            case 'billing_address':
+                valid = val.length >= 6 && /\d/.test(val);
+                errMsg = 'Add meg az utcát és házszámot (pl. Fő utca 12.).';
+                break;
+            case 'billing_city':
+                valid = val.length >= 2 && /^[a-zA-ZáéíóöőüűÁÉÍÓÖŐÜŰ\s\-\.]+$/.test(val);
+                errMsg = 'Add meg az érvényes várost.';
+                break;
+            case 'billing_zip':
+                valid = /^[0-9]{4,10}$/.test(val.replace(/\s/g, ''));
+                errMsg = 'Az irányítószám 4-10 számjegyből állhat (pl. 7622).';
+                break;
+            case 'billing_country':
+                valid = val.length >= 3;
+                errMsg = 'Add meg az érvényes országnevet.';
+                break;
+        }
+    }
+
+    el.classList.toggle('is-invalid', !valid);
+    el.classList.toggle('is-valid', valid);
+
+    
+    let errEl = document.getElementById('err_' + fieldId);
+    if (!errEl) {
+        errEl = document.createElement('div');
+        errEl.id = 'err_' + fieldId;
+        errEl.className = 'gc-field-error';
+        el.parentNode.appendChild(errEl);
+    }
+    errEl.textContent = valid ? '' : errMsg;
+    errEl.classList.toggle('show', !valid);
+
+    
+    if (!valid) {
+        el.classList.remove('gc-shake');
+        void el.offsetWidth; 
+        el.classList.add('gc-shake');
+    } else {
+        el.classList.remove('gc-shake');
+    }
+
+    return valid;
 }

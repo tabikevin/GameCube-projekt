@@ -33,6 +33,11 @@ function isAdmin() {
     return user && user.role === 'admin';
 }
 
+function isSeller() {
+    const user = getUser();
+    return user && (user.role === 'seller' || user.role === 'both' || user.role === 'admin');
+}
+
 function updateAuthUI() {
     const user = getUser();
     
@@ -41,6 +46,7 @@ function updateAuthUI() {
     const logoutBtn = document.getElementById('logoutBtn');
     const profileNavItem = document.getElementById('profileNavItem');
     const adminNavItem = document.getElementById('adminNavItem');
+    const sellerNavItem = document.getElementById('sellerNavItem');
 
     if (isLoggedIn() && user) {
         if (userGreeting) {
@@ -55,12 +61,18 @@ function updateAuthUI() {
         } else if (adminNavItem) {
             adminNavItem.classList.add('d-none');
         }
+        if (sellerNavItem && isSeller()) {
+            sellerNavItem.classList.remove('d-none');
+        } else if (sellerNavItem) {
+            sellerNavItem.classList.add('d-none');
+        }
     } else {
         if (userGreeting) userGreeting.classList.add('d-none');
         if (authButtons) authButtons.style.display = 'inline';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (profileNavItem) profileNavItem.classList.add('d-none');
         if (adminNavItem) adminNavItem.classList.add('d-none');
+        if (sellerNavItem) sellerNavItem.classList.add('d-none');
     }
 }
 

@@ -132,7 +132,8 @@ function getStatusLabel(status) {
     const labels = {
         'pending': 'Függőben',
         'paid': 'Fizetve',
-        'cancelled': 'Törölve'
+        'cancelled': 'Törölve',
+        'refunded': 'Visszatérítve'
     };
     return labels[status] || status;
 }
@@ -141,7 +142,8 @@ function getStatusBadgeClass(status) {
     const classes = {
         'pending': 'bg-warning text-dark',
         'paid': 'bg-success',
-        'cancelled': 'bg-danger'
+        'cancelled': 'bg-danger',
+        'refunded': 'bg-info text-dark'
     };
     return classes[status] || 'bg-secondary';
 }
@@ -150,7 +152,8 @@ function getPaymentMethodLabel(method) {
     const labels = {
         'online_card': 'Online kártya',
         'bank_transfer': 'Banki átutalás',
-        'paypal': 'PayPal'
+        'paypal': 'PayPal',
+        'cash': 'Készpénz'
     };
     return labels[method] || method;
 }
