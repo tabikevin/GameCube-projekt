@@ -484,6 +484,7 @@ body::after {
 
 .btn-outline-light:hover {
     background: rgba(168, 85, 247, 0.2);
+    color: #fff !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
 }
@@ -501,6 +502,59 @@ body::after {
 .gc-btn-main:hover {
     background: linear-gradient(135deg, #7c3aed, #6d28d9);
     box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+}
+
+/* ===== UNIFIED BUTTON STYLES ===== */
+.btn-purple {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+}
+.btn-purple:hover, .btn-purple:focus {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.55);
+    transform: translateY(-2px);
+}
+.btn-purple:active {
+    transform: translateY(0);
+}
+
+.btn-outline-purple {
+    background: transparent;
+    border: 1px solid rgba(168, 85, 247, 0.45);
+    color: #a855f7;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-outline-purple:hover, .btn-outline-purple:focus {
+    background: rgba(168, 85, 247, 0.12);
+    color: #c084fc;
+    border-color: rgba(168, 85, 247, 0.75);
+    transform: translateY(-1px);
+}
+
+/* Navbar action buttons — egységes outline stílus */
+.btn-outline-light.btn-sm,
+.btn-outline-danger.btn-sm {
+    border-width: 1.5px;
+    border-radius: 9px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+}
+.btn-outline-light.btn-sm:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+.btn-outline-danger.btn-sm:hover {
+    transform: translateY(-1px);
 }
 
 .gc-input, .form-control, .form-select {
@@ -633,6 +687,51 @@ body::after {
     text-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
 }
 
+/* Platform selector buttons on product cards */
+.gc-platform-selector {
+    min-height: 34px;
+}
+
+.gc-platform-btn {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.2em 0.55em;
+    border-radius: 5px;
+    transition: opacity 0.15s, transform 0.15s;
+    letter-spacing: 0.03em;
+}
+
+.gc-platform-btn-inactive {
+    opacity: 0.35 !important;
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: rgba(255,255,255,0.5) !important;
+}
+
+.gc-platform-btn-inactive:hover {
+    opacity: 0.7 !important;
+    transform: scale(1.05);
+}
+
+.gc-platform-btn:not(.gc-platform-btn-inactive) {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    transform: scale(1.05);
+}
+
+.gc-discount-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: auto;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.4em 0.8em;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
 .card-body {
     background: transparent;
 }
@@ -659,7 +758,7 @@ body::after {
 
 .gc-carousel-container {
     position: relative;
-    padding: 0 80px;
+    padding: 0 65px;
 }
 
 .gc-carousel-content {
@@ -977,3 +1076,145 @@ select.gc-input option { background: #1a0b2e; color: #f1f5f9; }
 .info-value { color: #f1f5f9 !important; }
 .key-code { color: #c084fc !important; }
 .doc-container, .doc-container * { --bs-body-color: #e2e8f0; }
+
+/* ============================================================
+   KÉPEK FELJAVÍTÁSA — lazy loading shimmer, jobb image render
+   ============================================================ */
+
+.gc-product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s ease, filter 0.3s ease;
+    filter: brightness(0.97) saturate(1.1);
+}
+
+.gc-product-card:hover .gc-product-image {
+    transform: scale(1.1);
+    filter: brightness(1.05) saturate(1.2);
+}
+
+/* Shimmer betöltési animáció */
+.gc-product-img.loading {
+    background: linear-gradient(90deg,
+        rgba(168,85,247,0.1) 25%,
+        rgba(168,85,247,0.25) 50%,
+        rgba(168,85,247,0.1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Kép betöltési placeholder ikon */
+.gc-product-img .img-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: rgba(168,85,247,0.4);
+    font-size: 2.5rem;
+    z-index: 1;
+}
+
+/* ============================================================
+   FORM VALIDÁCIÓ — mezők figyelemfelhívása
+   ============================================================ */
+
+.gc-input.is-invalid,
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: rgba(239, 68, 68, 0.8) !important;
+    background: rgba(239, 68, 68, 0.08) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+}
+
+.gc-input.is-valid,
+.form-control.is-valid {
+    border-color: rgba(34, 197, 94, 0.6) !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1) !important;
+}
+
+.gc-field-error {
+    color: #f87171;
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-top: 5px;
+    display: none;
+}
+
+.gc-field-error.show {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    animation: fadeIn 0.2s ease;
+}
+
+.gc-field-error.show::before {
+    content: '⚠';
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Shake animáció JS-ből újraindítható osztállyal */
+.gc-shake {
+    animation: gcShake 0.4s cubic-bezier(.36,.07,.19,.97) both !important;
+}
+
+@keyframes gcShake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Jelszó erősség jelző */
+.gc-password-strength {
+    margin-top: 8px;
+}
+
+.gc-strength-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.gc-strength-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease, background 0.4s ease;
+    width: 0%;
+}
+
+.gc-strength-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.strength-0 .gc-strength-fill { width: 0%; }
+.strength-1 .gc-strength-fill { width: 20%; background: #ef4444; }
+.strength-2 .gc-strength-fill { width: 45%; background: #f97316; }
+.strength-3 .gc-strength-fill { width: 65%; background: #eab308; }
+.strength-4 .gc-strength-fill { width: 85%; background: #84cc16; }
+.strength-5 .gc-strength-fill { width: 100%; background: #22c55e; }
