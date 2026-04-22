@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/mobile.css">
     <link rel="stylesheet" href="assets/css/main.css">
     <style>
         .doc-container {
@@ -23,9 +24,71 @@
         .gc-input::placeholder { color: #64748b !important; }
         .form-label { color: #94a3b8; font-size: 0.9rem; }
         .form-text { color: #64748b !important; font-size: 0.8rem; }
-        .btn-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); border: none; color: #fff; border-radius: 10px; font-weight: 600; width: 100%; padding: 0.75rem; }
-        .btn-purple:hover { opacity: 0.88; color: #fff; }
+
         .divider { border-top: 1px solid rgba(168,85,247,0.15); margin: 1.5rem 0 1.2rem; }
+
+        .gc-pw-rule {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(168,85,247,0.25);
+            color: #64748b;
+            background: rgba(168,85,247,0.05);
+            transition: all 0.25s ease;
+        }
+        .gc-pw-rule.ok {
+            border-color: rgba(34,197,94,0.5);
+            color: #86efac;
+            background: rgba(34,197,94,0.1);
+        }
+        .btn-purple { background: linear-gradient(135deg,#a855f7,#7c3aed); color:#fff; border:none; width:100%; padding:.875rem; border-radius:12px; font-weight:700; font-size:1rem; transition:all .3s; }
+        .btn-purple:hover { background: linear-gradient(135deg,#7c3aed,#6d28d9); transform:translateY(-1px); box-shadow:0 8px 25px rgba(168,85,247,.5); color:#fff; }
+
+        .gc-role-card {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.85rem 1rem; border-radius: 10px; cursor: pointer;
+            background: rgba(139,92,246,0.04);
+            border: 1px solid rgba(168,85,247,0.15);
+            transition: all 0.25s ease;
+        }
+        .gc-role-card:hover {
+            background: rgba(139,92,246,0.08);
+            border-color: rgba(168,85,247,0.35);
+        }
+        .gc-role-card.active {
+            background: rgba(139,92,246,0.12);
+            border-color: rgba(168,85,247,0.6);
+            box-shadow: 0 0 15px rgba(168,85,247,0.15);
+        }
+        .gc-role-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: rgba(168,85,247,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #a855f7; flex-shrink: 0;
+            transition: all 0.25s;
+        }
+        .gc-role-card.active .gc-role-icon {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(168,85,247,0.4);
+        }
+        .gc-role-info { flex: 1; }
+        .gc-role-name { font-size: 0.9rem; font-weight: 600; color: #f1f5f9; }
+        .gc-role-desc { font-size: 0.72rem; color: #64748b; margin-top: 1px; }
+        .gc-role-check {
+            color: rgba(168,85,247,0.2);
+            font-size: 1.15rem;
+            transition: all 0.25s;
+        }
+        .gc-role-card.active .gc-role-check {
+            color: #a855f7;
+        }
+
+        /* Fix ÁSZF checkbox checked state */
+        .form-check-input:checked {
+            background-color: #a855f7 !important;
+            border-color: #a855f7 !important;
+        }
     </style>
 </head>
 <body>
@@ -36,27 +99,51 @@
                     <span class="gc-logo-square me-2"></span>
                     <h1 class="h4 mb-0">GameCube</h1>
                 </a>
-                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0">
-                    <span id="userGreeting" class="text-light d-none"></span>
-                    <div id="profileNavItem" class="d-none">
-                        <a href="profile.html" class="btn btn-outline-light btn-sm"><i class="bi bi-person"></i> Profil</a>
-                    </div>
-                    <div id="adminNavItem" class="d-none">
-                        <a href="admin.html" class="btn btn-outline-warning btn-sm"><i class="bi bi-shield-check"></i> Admin</a>
-                    </div>
-                    <a href="cart.html" class="btn btn-outline-light btn-sm position-relative">
-                        <i class="bi bi-cart3"></i> Kosár
-                        <span id="cartBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">0</span>
-                    </a>
-                    <div id="authButtons">
-                        <a href="login.html" class="btn btn-outline-light btn-sm">Bejelentkezés</a>
-                        <a href="register.html" class="btn gc-btn-main btn-sm">Regisztráció</a>
-                    </div>
-                    <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none;">Kilépés</button>
-                </nav>
+                <nav class="d-flex align-items-center gap-3 mt-2 mt-md-0 gc-desktop-nav"></nav>
+        <button class="gc-hamburger" id="gcHamburger" aria-label="Menü megnyitása">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
     </header>
+    
+    <div class="gc-mobile-nav" id="gcMobileNav">
+        <a href="index.html" class="gc-mobile-nav-logo">
+            <span class="gc-logo-square"></span>
+            <h1 class="h5 mb-0" style="font-family:'Orbitron',sans-serif;">GameCube</h1>
+        </a>
+
+        <div id="gcMobGreeting" class="gc-mobile-nav-greeting" style="display:none;"></div>
+
+        <a href="index.html" class="gc-mobile-nav-item">
+            <i class="bi bi-house"></i> Főoldal
+        </a>
+        
+        <div class="gc-mobile-nav-divider"></div>
+        <a href="profile.html" class="gc-mobile-nav-item" id="gcMobProfile" style="display:none;">
+            <i class="bi bi-person"></i> Profil
+        </a>
+        <a href="admin.html" class="gc-mobile-nav-item warning" id="gcMobAdmin" style="display:none;">
+        <a href="seller.html" class="gc-mobile-nav-item" id="gcMobSeller" style="display:none;">
+            <i class="bi bi-shop"></i> Eladó panel
+        </a>
+            <i class="bi bi-shield-check"></i> Admin panel
+        </a>
+        <div class="gc-mobile-nav-divider" id="gcMobAuthDivider"></div>
+        <div id="gcMobAuthButtons">
+            <a href="login.html" class="gc-mobile-nav-item" style="margin-bottom:0.6rem; display:block; text-align:center; text-decoration:none; color:#f1f5f9;">
+                <i class="bi bi-box-arrow-in-right"></i> Bejelentkezés
+            </a>
+            <a href="register.html" class="gc-mobile-nav-item primary" style="display:block; text-align:center; text-decoration:none; color:#fff;">
+                <i class="bi bi-person-plus"></i> Regisztráció
+            </a>
+        </div>
+        <button class="gc-mobile-nav-item danger" id="gcMobLogout" style="display:none; border:none;">
+            <i class="bi bi-box-arrow-right"></i> Kilépés
+        </button>
+    </div>
 
     <section class="py-5">
         <div class="container">
@@ -69,36 +156,124 @@
 
                     <div class="doc-container">
                         <div id="errorMessage" class="mb-3 p-3" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171; border-radius:10px;"></div>
+                        <div id="successMessage" class="mb-3 p-3" style="display:none; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac; border-radius:10px;"></div>
 
-                        <form id="registerForm">
-                            <div class="mb-3">
-                                <label for="full_name" class="form-label">Teljes név</label>
-                                <input type="text" class="form-control gc-input" id="full_name" name="full_name" required>
+                        <p style="color:#64748b; font-size:0.8rem; margin-bottom:1.2rem;">A <span style="color:#a855f7;">*</span> jelölt mezők kitöltése kötelező.</p>
+
+                        <form id="registerForm" novalidate>
+                            
+                            <p style="font-family:'Orbitron',sans-serif; font-size:0.75rem; color:#a855f7; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; font-weight:700;"><i class="bi bi-person me-2"></i>Személyes adatok</p>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <label for="full_name" class="form-label">Teljes név <span style="color:#a855f7;">*</span></label>
+                                    <input type="text" class="form-control gc-input" id="full_name" name="full_name" placeholder="pl. Kovács János" required autocomplete="name">
+                                    <div class="gc-field-error" id="err_full_name">Kérjük add meg a teljes neved (vezetéknév és keresztnév).</div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="username" class="form-label">Felhasználónév <span style="color:#a855f7;">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-right:none;color:#a855f7;border-radius:10px 0 0 10px;"><i class="bi bi-at"></i></span>
+                                        <input type="text" class="form-control gc-input" id="username" name="username" placeholder="pl. kovacsjanos92" required minlength="3" style="border-radius:0 10px 10px 0 !important;" autocomplete="username">
+                                    </div>
+                                    <div class="gc-field-error" id="err_username">Legalább 3 karakter, csak betűk, számok és _ megengedett.</div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Felhasználónév</label>
-                                <input type="text" class="form-control gc-input" id="username" name="username" required minlength="3">
-                                <div class="form-text">Legalább 3 karakter</div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-12">
+                                    <label for="email" class="form-label">E-mail cím <span style="color:#a855f7;">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-right:none;color:#a855f7;border-radius:10px 0 0 10px;"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" class="form-control gc-input" id="email" name="email" placeholder="pl. valaki@email.com" required style="border-radius:0 10px 10px 0 !important;" autocomplete="email">
+                                    </div>
+                                    <div class="gc-field-error" id="err_email">Adj meg egy érvényes e-mail címet.</div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="phone" class="form-label">Telefonszám <span style="color:#64748b; font-weight:400; font-size:0.8rem;">(opcionális)</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-right:none;color:#a855f7;border-radius:10px 0 0 10px;"><i class="bi bi-phone"></i></span>
+                                        <input type="tel" class="form-control gc-input" id="phone" name="phone" placeholder="pl. +36 30 123 4567" style="border-radius:0 10px 10px 0 !important;" autocomplete="tel">
+                                    </div>
+                                </div>
                             </div>
+
+                            
+                            <div style="border-top:1px solid rgba(168,85,247,0.15); margin:1.2rem 0 1rem;"></div>
+                            <p style="font-family:'Orbitron',sans-serif; font-size:0.75rem; color:#a855f7; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; font-weight:700;"><i class="bi bi-shield-lock me-2"></i>Biztonság</p>
+
                             <div class="mb-3">
-                                <label for="email" class="form-label">E-mail cím</label>
-                                <input type="email" class="form-control gc-input" id="email" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Telefonszám <span style="color:#64748b;">(opcionális)</span></label>
-                                <input type="text" class="form-control gc-input" id="phone" name="phone">
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Jelszó</label>
-                                <input type="password" class="form-control gc-input" id="password" name="password" required minlength="6">
-                                <div class="form-text">Legalább 6 karakter</div>
+                                <label for="password" class="form-label">Jelszó <span style="color:#a855f7;">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-right:none;color:#a855f7;border-radius:10px 0 0 10px;"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control gc-input" id="password" name="password" placeholder="Min. 8 karakter" required style="border-radius:0 10px 0 0 !important;" autocomplete="new-password">
+                                    <button type="button" class="input-group-text gc-pw-toggle" id="togglePw" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-left:none;border-radius:0 10px 10px 0;color:#64748b;cursor:pointer;"><i class="bi bi-eye" id="togglePwIcon"></i></button>
+                                </div>
+                                
+                                <div class="gc-password-strength strength-0" id="pwStrength">
+                                    <div class="gc-strength-bar"><div class="gc-strength-fill" id="pwStrengthFill"></div></div>
+                                    <span class="gc-strength-text" id="pwStrengthText" style="color:#64748b;">Erősség jelző</span>
+                                </div>
+                                <div class="gc-field-error" id="err_password">A jelszónak legalább 8 karakteresnek kell lennie, és tartalmaznia kell: nagybetűt, kisbetűt, számot és speciális karaktert (!@#$%...).</div>
+                                <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;" id="pwRules">
+                                    <span class="gc-pw-rule" id="rule_len" data-rule="len">8+ karakter</span>
+                                    <span class="gc-pw-rule" id="rule_upper" data-rule="upper">Nagybetű</span>
+                                    <span class="gc-pw-rule" id="rule_lower" data-rule="lower">Kisbetű</span>
+                                    <span class="gc-pw-rule" id="rule_num" data-rule="num">Szám</span>
+                                    <span class="gc-pw-rule" id="rule_special" data-rule="special">Speciális (!@#...)</span>
+                                </div>
                             </div>
                             <div class="mb-4">
-                                <label for="password_confirm" class="form-label">Jelszó megerősítése</label>
-                                <input type="password" class="form-control gc-input" id="password_confirm" name="password_confirm" required>
+                                <label for="password_confirm" class="form-label">Jelszó megerősítése <span style="color:#a855f7;">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background:rgba(139,92,246,0.1);border:1px solid rgba(168,85,247,0.25);border-right:none;color:#a855f7;border-radius:10px 0 0 10px;"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control gc-input" id="password_confirm" name="password_confirm" placeholder="Ismételd meg a jelszót" required style="border-radius:0 10px 10px 0 !important;" autocomplete="new-password">
+                                </div>
+                                <div class="gc-field-error" id="err_password_confirm">A két jelszó nem egyezik.</div>
                             </div>
-                            <button type="submit" class="btn btn-purple mb-2">
-                                <i class="bi bi-person-plus me-2"></i>Regisztráció
+
+                            
+                            <div style="border-top:1px solid rgba(168,85,247,0.15); margin:1.2rem 0 1rem;"></div>
+                            <p style="font-family:'Orbitron',sans-serif; font-size:0.75rem; color:#a855f7; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem; font-weight:700;"><i class="bi bi-shop me-2"></i>Fiók típusa</p>
+
+                            <div class="mb-4">
+                                <label class="form-label">Mire szeretnéd használni a fiókodat? <span style="color:#a855f7;">*</span></label>
+                                <div class="d-flex flex-column gap-2" id="roleSelector">
+                                    <div class="gc-role-card active" data-role="user">
+                                        <input type="radio" name="role" value="user" checked style="display:none;">
+                                        <div class="gc-role-icon"><i class="bi bi-cart3"></i></div>
+                                        <div class="gc-role-info">
+                                            <div class="gc-role-name">Vásárló</div>
+                                            <div class="gc-role-desc">Játék kulcsok böngészése és vásárlása</div>
+                                        </div>
+                                        <div class="gc-role-check"><i class="bi bi-check-circle-fill"></i></div>
+                                    </div>
+                                    <div class="gc-role-card" data-role="seller">
+                                        <input type="radio" name="role" value="seller" style="display:none;">
+                                        <div class="gc-role-icon"><i class="bi bi-shop"></i></div>
+                                        <div class="gc-role-info">
+                                            <div class="gc-role-name">Eladó</div>
+                                            <div class="gc-role-desc">Kulcsok feltöltése és értékesítése — vásárlás is lehetséges</div>
+                                        </div>
+                                        <div class="gc-role-check"><i class="bi bi-check-circle-fill"></i></div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            
+                            <div class="mb-4">
+                                <div class="form-check" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:12px 12px 12px 36px;">
+                                    <input class="form-check-input" type="checkbox" id="acceptTerms" name="acceptTerms" required style="background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);">
+                                    <label class="form-check-label" for="acceptTerms" style="color:#94a3b8;font-size:0.88rem;">
+                                        Elolvastam és elfogadom az <a href="aszf.html" target="_blank" style="color:#a855f7;">Általános Szerződési Feltételeket</a> és az <a href="adatkezeles.html" target="_blank" style="color:#a855f7;">Adatkezelési tájékoztatót</a>. <span style="color:#a855f7;">*</span>
+                                    </label>
+                                </div>
+                                <div class="gc-field-error" id="err_terms">Az ÁSZF és adatkezelési tájékoztató elfogadása kötelező a regisztrációhoz.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-purple mb-2" id="registerBtn">
+                                <i class="bi bi-person-plus me-2"></i>Fiók létrehozása
                             </button>
                         </form>
 
@@ -136,5 +311,107 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/auth.js?v=fix3"></script>
     <script src="assets/js/register.js?v=fix3"></script>
+
+    <script>
+    // ── Mobil hamburger menü ──
+    (function() {
+        var btn = document.getElementById('gcHamburger');
+        var nav = document.getElementById('gcMobileNav');
+        if (!btn || !nav) return;
+
+        btn.addEventListener('click', function() {
+            var isOpen = nav.classList.contains('open');
+            if (isOpen) {
+                nav.classList.remove('open');
+                btn.classList.remove('open');
+                document.body.classList.remove('gc-nav-open');
+            } else {
+                syncMobileNav();
+                nav.classList.add('open');
+                btn.classList.add('open');
+                document.body.classList.add('gc-nav-open');
+            }
+        });
+
+        // Bezárás linkre kattintáskor
+        nav.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                nav.classList.remove('open');
+                btn.classList.remove('open');
+                document.body.classList.remove('gc-nav-open');
+            });
+        });
+
+        // Logout gomb a mobil menüben
+        var mobLogout = document.getElementById('gcMobLogout');
+        if (mobLogout) {
+            mobLogout.addEventListener('click', function() {
+                nav.classList.remove('open');
+                btn.classList.remove('open');
+                document.body.classList.remove('gc-nav-open');
+                var desktopLogout = document.getElementById('logoutBtn');
+                if (desktopLogout) desktopLogout.click();
+            });
+        }
+
+        // Szinkronizálás a desktop nav állapotával
+        function syncMobileNav() {
+            // Greeting
+            var greeting = document.getElementById('userGreeting');
+            var mobGreeting = document.getElementById('gcMobGreeting');
+            if (greeting && mobGreeting) {
+                if (!greeting.classList.contains('d-none') && greeting.textContent.trim()) {
+                    mobGreeting.textContent = greeting.textContent;
+                    mobGreeting.style.display = 'block';
+                } else {
+                    mobGreeting.style.display = 'none';
+                }
+            }
+            // Profil
+            var profileItem = document.getElementById('profileNavItem');
+            var mobProfile = document.getElementById('gcMobProfile');
+            if (profileItem && mobProfile) {
+                mobProfile.style.display = profileItem.classList.contains('d-none') ? 'none' : 'flex';
+            }
+            // Admin
+            var adminItem = document.getElementById('adminNavItem');
+            var mobAdmin = document.getElementById('gcMobAdmin');
+            if (adminItem && mobAdmin) {
+                mobAdmin.style.display = adminItem.classList.contains('d-none') ? 'none' : 'flex';
+            }
+            // Seller
+            var mobSeller = document.getElementById('gcMobSeller');
+            if (mobSeller) {
+                var u2 = localStorage.getItem('user');
+                var showSeller = false;
+                if (u2) { try { var up = JSON.parse(u2); showSeller = (up.role === 'seller' || up.role === 'both'); } catch(e){} }
+                mobSeller.style.display = showSeller ? 'flex' : 'none';
+            }
+            // Auth buttons
+            var authBtns = document.getElementById('authButtons');
+            var mobAuthBtns = document.getElementById('gcMobAuthButtons');
+            if (authBtns && mobAuthBtns) {
+                mobAuthBtns.style.display = authBtns.style.display === 'none' ? 'none' : 'block';
+            }
+            // Logout
+            var desktopLogout = document.getElementById('logoutBtn');
+            var mobLogoutBtn = document.getElementById('gcMobLogout');
+            if (desktopLogout && mobLogoutBtn) {
+                mobLogoutBtn.style.display = desktopLogout.style.display === 'none' ? 'none' : 'flex';
+            }
+            // Kosár badge
+            var cartBadge = document.getElementById('cartBadge');
+            var mobCartBadge = document.getElementById('gcMobCartBadge');
+            if (cartBadge && mobCartBadge) {
+                if (cartBadge.style.display !== 'none') {
+                    mobCartBadge.textContent = cartBadge.textContent;
+                    mobCartBadge.style.display = 'inline-block';
+                } else {
+                    mobCartBadge.style.display = 'none';
+                }
+            }
+        }
+    })();
+    </script>
 </body>
 </html>
