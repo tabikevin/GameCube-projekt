@@ -131,11 +131,11 @@ function buildEmailLayout($headerSubtitle, $bannerText, $bodyContent, $showProfi
     $profileBtn = '';
     if ($showProfileButton) {
         $profileBtn = "
-            <table width='100%' cellpadding='0' cellspacing='0'>
+            <table width='100%' cellpadding='0' cellspacing='0' style='margin-top: 28px;'>
                 <tr>
-                    <td align='center' style='padding-top: 20px;'>
-                        <a href='#' style='display: inline-block; background: linear-gradient(135deg, #a855f7, #7c3aed); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.5px;'>
-                            🎮 Profilom megnyitása
+                    <td align='center'>
+                        <a href='#' style='display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-size: 15px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 8px 24px rgba(168,85,247,0.45);'>
+                            🎮 &nbsp; Profilom megnyitása
                         </a>
                     </td>
                 </tr>
@@ -145,40 +145,86 @@ function buildEmailLayout($headerSubtitle, $bannerText, $bodyContent, $showProfi
     return <<<HTML
 <!DOCTYPE html>
 <html lang="hu">
-<head><meta charset="UTF-8"></head>
-<body style="margin: 0; padding: 0; background-color: #0f0520; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #0f0520 0%, #1a0b2e 100%); padding: 40px 20px;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameCube</title>
+    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#09051a;font-family:'Segoe UI',Arial,sans-serif;-webkit-text-size-adjust:100%;">
+
+<!-- Outer wrapper -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#09051a;padding:32px 16px;">
+<tr><td align="center">
+
+    <!-- Email card -->
+    <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+
+        <!-- ── HEADER ── -->
         <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+            <td style="background:linear-gradient(135deg,#1a0b35 0%,#2a1258 100%);padding:36px 44px 28px;text-align:center;border-bottom:2px solid rgba(168,85,247,0.6);">
+                <!-- Logo mark -->
+                <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
                     <tr>
-                        <td style="background: linear-gradient(135deg, #1e1040, #2d1560); border-radius: 16px 16px 0 0; padding: 30px 40px; border-bottom: 2px solid #a855f7; text-align: center;">
-                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #a855f7, #06b6d4); border-radius: 12px; display: inline-block; margin-bottom: 15px;"></div>
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: 2px;">GameCube</h1>
-                            <p style="margin: 8px 0 0; color: #a855f7; font-size: 13px; text-transform: uppercase; letter-spacing: 3px;">{$headerSubtitle}</p>
+                        <td style="background:linear-gradient(135deg,#a855f7,#06b6d4);width:52px;height:52px;border-radius:14px;text-align:center;vertical-align:middle;font-size:26px;line-height:52px;">
+                            🎮
+                        </td>
+                    </tr>
+                </table>
+                <h1 style="margin:0 0 6px;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:3px;text-transform:uppercase;">GameCube</h1>
+                <p style="margin:0;color:#a855f7;font-size:11px;text-transform:uppercase;letter-spacing:4px;font-weight:600;">{$headerSubtitle}</p>
+            </td>
+        </tr>
+
+        <!-- ── BANNER BAR ── -->
+        <tr>
+            <td style="background:linear-gradient(90deg,#7c3aed 0%,#a855f7 50%,#06b6d4 100%);padding:14px 44px;text-align:center;">
+                <p style="margin:0;color:#ffffff;font-size:15px;font-weight:700;letter-spacing:0.3px;">{$bannerText}</p>
+            </td>
+        </tr>
+
+        <!-- ── BODY ── -->
+        <tr>
+            <td style="background-color:#120828;padding:36px 44px;">
+                {$bodyContent}
+                {$profileBtn}
+            </td>
+        </tr>
+
+        <!-- ── DIVIDER ── -->
+        <tr>
+            <td style="background-color:#0d0620;padding:0 44px;">
+                <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(168,85,247,0.4),transparent);"></div>
+            </td>
+        </tr>
+
+        <!-- ── FOOTER ── -->
+        <tr>
+            <td style="background-color:#0d0620;padding:24px 44px 28px;border-radius:0 0 20px 20px;">
+                <!-- Social / info row -->
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td align="center" style="padding-bottom:14px;">
+                            <span style="display:inline-block;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.25);border-radius:50px;padding:5px 16px;color:#a855f7;font-size:12px;font-weight:600;">✉️ &nbsp; support@gamecube.hu</span>
                         </td>
                     </tr>
                     <tr>
-                        <td style="background: linear-gradient(135deg, #a855f7, #7c3aed); padding: 16px 40px; text-align: center;">
-                            <p style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 600;">{$bannerText}</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="background-color: #160a2e; padding: 35px 40px;">
-                            {$bodyContent}
-                            {$profileBtn}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="background-color: #0d0620; border-radius: 0 0 16px 16px; padding: 25px 40px; border-top: 1px solid rgba(168, 85, 247, 0.15); text-align: center;">
-                            <p style="margin: 0 0 5px; color: #64748b; font-size: 12px;">Ez egy automatikus értesítés a GameCube weboldaltól.</p>
-                            <p style="margin: 0; color: #475569; font-size: 11px;">© 2026 GameCube - Digitális Játék Kulcsok</p>
+                        <td align="center">
+                            <p style="margin:0 0 4px;color:#475569;font-size:11px;line-height:1.6;">Ez egy automatikusan generált értesítés — kérjük, ne válaszolj rá.</p>
+                            <p style="margin:0;color:#334155;font-size:11px;">© 2026 GameCube &nbsp;·&nbsp; Digitális Játék Kulcsok &nbsp;·&nbsp; Minden jog fenntartva.</p>
                         </td>
                     </tr>
                 </table>
             </td>
         </tr>
+
     </table>
+    <!-- / Email card -->
+
+</td></tr>
+</table>
+<!-- / Outer wrapper -->
+
 </body>
 </html>
 HTML;

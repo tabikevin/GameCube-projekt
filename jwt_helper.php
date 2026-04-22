@@ -1,7 +1,7 @@
 <?php
 $JWT_SECRET = "GcUbE_2026_BackendAuth_9f3KxA7Qm2!";
 $JWT_ISSUER = "gamecube";
-$JWT_EXPIRE = 3600; 
+$JWT_EXPIRE = 86400;
 
 function base64UrlEncode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -20,10 +20,7 @@ function createJWT($payload) {
 
     $h = base64UrlEncode(json_encode($header));
     $p = base64UrlEncode(json_encode($payload));
-
-    $s = base64UrlEncode(
-        hash_hmac("sha256", "$h.$p", $JWT_SECRET, true)
-    );
+    $s = base64UrlEncode(hash_hmac("sha256", "$h.$p", $JWT_SECRET, true));
 
     return "$h.$p.$s";
 }
@@ -36,10 +33,7 @@ function verifyJWT($token) {
 
     [$h, $p, $s] = $parts;
 
-    $check = base64UrlEncode(
-        hash_hmac("sha256", "$h.$p", $JWT_SECRET, true)
-    );
-
+    $check = base64UrlEncode(hash_hmac("sha256", "$h.$p", $JWT_SECRET, true));
     if (!hash_equals($check, $s)) return false;
 
     $data = json_decode(base64UrlDecode($p), true);

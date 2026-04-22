@@ -19,89 +19,54 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-$username = trim($input['username'] ?? '');
-$email = trim($input['email'] ?? '');
-$full_name = trim($input['full_name'] ?? '');
-$phone = trim($input['phone'] ?? '');
-$password = $input['password'] ?? '';
+$username         = trim($input['username'] ?? '');
+$email            = trim($input['email'] ?? '');
+$full_name        = trim($input['full_name'] ?? '');
+$phone            = trim($input['phone'] ?? '');
+$password         = $input['password'] ?? '';
 $password_confirm = $input['password_confirm'] ?? '';
+$role             = trim($input['role'] ?? 'user');
 
 $errors = [];
 
-if (empty($full_name)) {
-    $errors[] = 'A teljes név megadása kötelező';
-}
+if (empty($full_name))   $errors[] = 'A teljes név megadása kötelező';
+if (strlen($username) < 3) $errors[] = 'A felhasználónév legalább 3 karakter legyen';
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Érvényes e-mail cím megadása kötelező';
+if (strlen($password) < 6) $errors[] = 'A jelszó legalább 6 karakter legyen';
+if ($password !== $password_confirm) $errors[] = 'A két jelszó nem egyezik';
+if (!empty($phone) && strlen($phone) < 7) $errors[] = 'A telefonszám legalább 7 karakter legyen';
 
-if (strlen($username) < 3) {
-    $errors[] = 'A felhasználónév legalább 3 karakter legyen';
-}
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors[] = 'Érvényes e-mail cím megadása kötelező';
-}
-
-if (strlen($password) < 6) {
-    $errors[] = 'A jelszó legalább 6 karakter legyen';
-}
-
-if ($password !== $password_confirm) {
-    $errors[] = 'A két jelszó nem egyezik';
-}
-
-if (!empty($phone) && strlen($phone) < 7) {
-    $errors[] = 'A telefonszám legalább 7 karakter legyen';
+if (!in_array($role, ['user', 'seller'])) {
+    $role = 'user';
 }
 
 if (!empty($errors)) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'errors' => $errors
-    ]);
+    echo json_encode(['success' => false, 'errors' => $errors]);
     exit;
 }
 
 try {
-    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
-    $stmt->bind_param("ss", $username, $email);
-    $stmt->execute();
-    $stmt->store_result();
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
+    $stmt->execute([$username, $email]);
 
-    if ($stmt->num_rows > 0) {
-        $stmt->close();
+    if ($stmt->fetch()) {
         http_response_code(409);
-        echo json_encode([
-            'success' => false,
-            'error' => 'A felhasználónév vagy e-mail cím már foglalt'
-        ]);
+        echo json_encode(['success' => false, 'error' => 'A felhasználónév vagy e-mail cím már foglalt']);
         exit;
     }
-    $stmt->close();
 
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
-    $role = 'user';
-    $is_active = 1;
 
-    $stmt = $conn->prepare("
+    $stmt = $pdo->prepare("
         INSERT INTO users (username, email, password_hash, full_name, phone, role, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, 1)
     ");
-    $stmt->bind_param("ssssssi", $username, $email, $password_hash, $full_name, $phone, $role, $is_active);
-    
-    if ($stmt->execute()) {
-        $stmt->close();
-        echo json_encode([
-            'success' => true,
-            'message' => 'Sikeres regisztráció! Most már bejelentkezhetsz.'
-        ]);
-    } else {
-        throw new Exception('Registration failed');
-    }
+    $stmt->execute([$username, $email, $password_hash, $full_name, $phone, $role]);
 
-} catch (Exception $e) {
+    echo json_encode(['success' => true, 'message' => 'Sikeres regisztráció! Most már bejelentkezhetsz.']);
+
+} catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Hiba történt a regisztráció során'
-    ]);
+    echo json_encode(['success' => false, 'error' => 'Hiba történt a regisztráció során: ' . $e->getMessage()]);
 }
