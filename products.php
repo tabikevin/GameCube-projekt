@@ -4,47 +4,41 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+
+require_once "../../config/db.php";
+require_once "../../config/seller_auth.php";
+
+$user_data = getSellerAuth($pdo);
+
+if (!$user_data) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Bejelentkezés szükséges']);
     exit;
 }
-
-require_once "../config/db.php";
+}
 
 try {
-    $result = $conn->query("
-        SELECT id, name, platform, category, short_description, price, tag, image_url
+    $stmt = $pdo->query("
+        SELECT id, name, platform, price, image_url, category, tag
         FROM products
         WHERE is_active = 1
-        ORDER BY id ASC
+        ORDER BY name ASC
     ");
-
     $products = [];
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $products[] = [
-                'id' => (int)$row['id'],
-                'name' => $row['name'],
-                'platform' => $row['platform'],
-                'category' => $row['category'] ?? 'action',
-                'short_description' => $row['short_description'],
-                'price' => (int)$row['price'],
-                'tag' => $row['tag'],
-                'image_url' => $row['image_url'] ?? 'steam.png'
-            ];
-        }
-        $result->free();
+    while ($row = $stmt->fetch()) {
+        $products[] = [
+            'id'        => (int)$row['id'],
+            'name'      => $row['name'],
+            'platform'  => $row['platform'],
+            'price'     => (int)$row['price'],
+            'image_url' => $row['image_url'],
+            'category'  => $row['category'],
+            'tag'       => $row['tag']
+        ];
     }
-
-    echo json_encode([
-        'success' => true,
-        'products' => $products
-    ]);
-
-} catch (Exception $e) {
+    echo json_encode(['success' => true, 'products' => $products]);
+} catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Hiba történt a termékek lekérése során'
-    ]);
+    echo json_encode(['success' => false, 'error' => 'Hiba történt a termékek lekérése során']);
 }
